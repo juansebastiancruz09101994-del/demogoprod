@@ -88,6 +88,10 @@ export default {
           "0%, 100%": { transform: "scale(1)", opacity: "1" },
           "50%": { transform: "scale(1.5)", opacity: "0.5" },
         },
+        "bounce-left": {
+          "0%, 100%": { transform: "translateX(0)" },
+          "50%": { transform: "translateX(-8px)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -96,6 +100,7 @@ export default {
         "slide-out-left": "slide-out-left 0.3s ease-out",
         "pulse-soft": "pulse-soft 2s ease-in-out infinite",
         "demo-pulse": "demo-pulse 1.5s ease-in-out infinite",
+        "bounce-left": "bounce-left 1s ease-in-out infinite",
       },
     },
   },
