@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Lock, X, Plus, Info, FunctionSquare, HelpCircle } from 'lucide-react';
 import { MODULES } from './modules';
 import { NodeData } from './types';
+import { GuidePulse } from './DemoMode/GuidePulse';
+import type { DemoStep } from './DemoMode/demoScenarios';
 
 interface NodeProps {
   node: NodeData;
@@ -12,6 +14,10 @@ interface NodeProps {
   onDelete: (id: string) => void;
   isSelected: boolean;
   onSelect: (id: string) => void;
+  demoHighlight?: {
+    step: DemoStep;
+    accentColor: string;
+  } | null;
 }
 
 export const Node = ({ 
@@ -22,7 +28,8 @@ export const Node = ({
   onAddChild, 
   onDelete, 
   isSelected, 
-  onSelect 
+  onSelect,
+  demoHighlight,
 }: NodeProps) => {
   const definition = MODULES[node.type];
   const [inputs, setInputs] = useState<Record<string, number>>(data || {});
@@ -73,6 +80,19 @@ export const Node = ({
     }
   };
 
+  // Determine if this node has a demo highlight for a specific variable or suggestion
+  const isHighlightedInput = (varId: string) => {
+    if (!demoHighlight) return false;
+    const { step } = demoHighlight;
+    return step.targetType === 'fill-input' && step.targetVariable === varId;
+  };
+
+  const isHighlightedSuggestion = (suggestionId: string) => {
+    if (!demoHighlight) return false;
+    const { step } = demoHighlight;
+    return step.targetType === 'click-suggestion' && step.suggestionId === suggestionId;
+  };
+
   return (
     <div 
       className={`absolute w-80 shadow-lg rounded-xl flex flex-col transition-shadow duration-200 
@@ -119,8 +139,14 @@ export const Node = ({
 
         {definition.variables.map(v => {
           const isTarget = targetId === v.id;
+          const hasHighlight = isHighlightedInput(v.id);
           return (
-            <div key={v.id} className="flex items-center gap-2 text-sm">
+            <div key={v.id} className={`flex items-center gap-2 text-sm relative ${hasHighlight ? 'z-20' : ''}`}>
+              {hasHighlight && (
+                <div className="absolute -left-8 top-1/2 -translate-y-1/2">
+                  <GuidePulse color={demoHighlight!.accentColor} size="sm" />
+                </div>
+              )}
               <div className="flex flex-col gap-1">
                 {!definition.isInputNode && (
                   <button 
@@ -163,7 +189,9 @@ export const Node = ({
                   className={`w-full px-2 py-1 rounded border text-right font-mono
                     ${isTarget 
                       ? 'bg-blue-50 border-blue-200 text-blue-700 font-bold' 
-                      : 'bg-slate-50 border-slate-200 focus:border-blue-400 outline-none'
+                      : hasHighlight
+                        ? 'bg-yellow-50 border-yellow-400 ring-2 ring-yellow-300 outline-none'
+                        : 'bg-slate-50 border-slate-200 focus:border-blue-400 outline-none'
                     }
                   `}
                   placeholder="0"
@@ -177,18 +205,31 @@ export const Node = ({
           <div className="pt-2 mt-2 border-t border-slate-100">
             <p className="text-[10px] uppercase font-bold text-slate-400 mb-2">Sugerencias</p>
             <div className="flex flex-wrap gap-2">
-              {definition.suggestions.map((s) => (
-                <button
-                  key={s.id}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onAddChild(node.id, s.id, s.map);
-                  }}
-                  className="flex items-center gap-1 px-2 py-1 bg-slate-100 hover:bg-blue-100 text-slate-600 hover:text-blue-700 rounded-full text-xs transition-colors border border-slate-200"
-                >
-                   <Plus className="w-3 h-3" /> {s.label}
-                </button>
-              ))}
+              {definition.suggestions.map((s) => {
+                const hasHighlight = isHighlightedSuggestion(s.id);
+                return (
+                  <button
+                    key={s.id}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onAddChild(node.id, s.id, s.map);
+                    }}
+                    className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs transition-colors border relative
+                      ${hasHighlight
+                        ? 'bg-yellow-100 text-yellow-800 border-yellow-400 ring-2 ring-yellow-300 animate-demo-pulse'
+                        : 'bg-slate-100 hover:bg-blue-100 text-slate-600 hover:text-blue-700 border-slate-200'
+                      }
+                    `}
+                  >
+                    {hasHighlight && (
+                      <span className="absolute -top-1 -right-1">
+                        <GuidePulse color={demoHighlight!.accentColor} size="sm" />
+                      </span>
+                    )}
+                    <Plus className="w-3 h-3" /> {s.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}

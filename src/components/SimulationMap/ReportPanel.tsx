@@ -2,14 +2,16 @@ import { useState, useCallback } from 'react';
 import { FileSpreadsheet, Upload, X, ChevronLeft, ChevronRight, Users, Package, Factory, DollarSign } from 'lucide-react';
 import { parseExcelReport } from '@/utils/excelParser';
 import type { ReportData } from './types';
+import { GuidePulse } from './DemoMode/GuidePulse';
 
 interface ReportPanelProps {
   reportData: ReportData | null;
   onReportLoaded: (data: ReportData) => void;
   onReportCleared: () => void;
+  demoHighlight?: boolean;
 }
 
-export const ReportPanel = ({ reportData, onReportLoaded, onReportCleared }: ReportPanelProps) => {
+export const ReportPanel = ({ reportData, onReportLoaded, onReportCleared, demoHighlight }: ReportPanelProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -96,8 +98,13 @@ export const ReportPanel = ({ reportData, onReportLoaded, onReportCleared }: Rep
     return (
       <button
         onClick={handleExpand}
-        className="fixed left-0 top-1/2 -translate-y-1/2 z-50 bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg shadow-blue-500/30 rounded-r-xl px-3 py-5 hover:from-blue-500 hover:to-blue-600 hover:shadow-blue-500/40 hover:shadow-xl transition-all duration-300 group"
+        className="fixed left-0 top-1/2 -translate-y-1/2 z-50 bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg shadow-blue-500/30 rounded-r-xl px-3 py-5 hover:from-blue-500 hover:to-blue-600 hover:shadow-blue-500/40 hover:shadow-xl transition-all duration-300 group relative"
       >
+        {demoHighlight && (
+          <div className="absolute -right-3 -top-3">
+            <GuidePulse color="#3b82f6" />
+          </div>
+        )}
         <div className="flex flex-col items-center gap-3">
           <FileSpreadsheet className="w-5 h-5 text-white animate-pulse-soft" />
           <ChevronRight className="w-4 h-4 text-blue-200 group-hover:translate-x-0.5 transition-transform" />
@@ -110,10 +117,18 @@ export const ReportPanel = ({ reportData, onReportLoaded, onReportCleared }: Rep
     <div 
       className={`
         fixed left-5 top-5 z-50 w-80 bg-white/95 backdrop-blur-md shadow-xl shadow-blue-500/10 
-        rounded-2xl border border-blue-100 overflow-hidden max-h-[calc(100vh-40px)] flex flex-col
+        rounded-2xl border overflow-hidden max-h-[calc(100vh-40px)] flex flex-col
+        ${demoHighlight && !reportData ? 'border-blue-400 ring-2 ring-blue-300' : 'border-blue-100'}
         ${isAnimating ? 'animate-slide-out-left' : 'animate-slide-in-left'}
       `}
     >
+      {/* Demo pulse indicator */}
+      {demoHighlight && !reportData && (
+        <div className="absolute -right-3 -top-3 z-10">
+          <GuidePulse color="#3b82f6" />
+        </div>
+      )}
+
       {/* Header - Blue Gradient */}
       <div className="flex items-center justify-between px-4 py-3.5 bg-gradient-to-r from-blue-600 to-blue-700">
         <h2 className="font-semibold text-white flex items-center gap-2.5">
@@ -156,7 +171,9 @@ export const ReportPanel = ({ reportData, onReportLoaded, onReportCleared }: Rep
                 border-2 border-dashed rounded-xl p-5 text-center transition-all duration-300 cursor-pointer
                 ${isDragOver 
                   ? 'border-blue-500 bg-blue-50 scale-[1.02]' 
-                  : 'border-blue-200 hover:border-blue-400 hover:bg-blue-50/50'}
+                  : demoHighlight
+                    ? 'border-blue-400 bg-blue-50/80 animate-demo-pulse'
+                    : 'border-blue-200 hover:border-blue-400 hover:bg-blue-50/50'}
                 ${isLoading ? 'opacity-50 pointer-events-none' : ''}
               `}
             >
