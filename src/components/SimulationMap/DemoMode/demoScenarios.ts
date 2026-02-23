@@ -431,8 +431,8 @@ const scenario3Steps: DemoStep[] = [
     targetNodeType: 'cost_labor',
     targetVariable: 'workers',
     expectedValue: 1852,
-    tolerance: 0.01,
-    message: 'Total Trabajadores: 1,852 (se paga a toda la plantilla).',
+    tolerance: 0.10,
+    message: 'Total Trabajadores: 1,852 o ~1,570 (tú decides si despides a los que sobran o pagas a todos).',
     highlightTarget: 'node-input',
   },
   {
