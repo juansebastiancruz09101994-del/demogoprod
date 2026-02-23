@@ -1,4 +1,4 @@
-import { Check, Lock, ChevronDown, ChevronUp } from 'lucide-react';
+import { Check, Lock, ChevronDown, ChevronUp, ArrowRight } from 'lucide-react';
 import { useDemo } from './DemoContext';
 import { DEMO_SCENARIOS } from './demoScenarios';
 
@@ -13,11 +13,14 @@ export const ScenarioCards = () => {
         const isLocked = !isCompleted && scenario.id > 1 && !completedScenarios.includes(scenario.id - 1) && currentScenario !== scenario.id;
         const isExpanded = scenarioExpanded === scenario.id;
 
+        const showArrow = isActive && !isExpanded && !isCompleted;
+        const arrowColor = scenario.id === 1 ? 'text-emerald-500' : scenario.id === 2 ? 'text-orange-500' : 'text-red-500';
+
         return (
           <div
             key={scenario.id}
             className={`
-              rounded-xl border shadow-lg transition-all duration-300 overflow-hidden
+              relative rounded-xl border shadow-lg transition-all duration-300 overflow-hidden
               ${isCompleted
                 ? 'bg-white border-emerald-200 opacity-80'
                 : isActive
@@ -29,6 +32,11 @@ export const ScenarioCards = () => {
             `}
             onClick={() => !isLocked && selectScenario(scenario.id)}
           >
+            {showArrow && (
+              <div className={`absolute -left-9 top-1/2 -translate-y-1/2 animate-bounce-left ${arrowColor}`}>
+                <ArrowRight className="w-6 h-6" />
+              </div>
+            )}
             <div className="flex items-center gap-3 px-4 py-3">
               {/* Status icon */}
               <div className={`
