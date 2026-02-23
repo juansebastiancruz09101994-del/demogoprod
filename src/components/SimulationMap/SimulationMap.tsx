@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Layers, X, Move, Maximize, ZoomIn, ZoomOut, Trash2, Download, MessageSquare, GraduationCap } from "lucide-react";
 import { FeedbackModal } from "./FeedbackModal";
 import { exportStrategyPDF } from "./ExportPDF";
@@ -48,8 +48,36 @@ const SimulationMapInner = () => {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   const demo = useDemo();
+  const prevScenarioRef = useRef(demo.currentScenario);
 
-  // Persist state to localStorage
+  // Demo: swap canvas when scenario changes
+  useEffect(() => {
+    const prev = prevScenarioRef.current;
+    const curr = demo.currentScenario;
+    prevScenarioRef.current = curr;
+
+    if (!demo.isDemoActive || curr < 1 || curr > 3) return;
+    if (prev === curr) return;
+
+    // Save previous scenario canvas (if it was a valid scenario)
+    if (prev >= 1 && prev <= 3) {
+      demo.saveScenarioCanvas(prev, nodes, edges);
+    }
+
+    // Load new scenario canvas or start clean
+    const saved = demo.loadScenarioCanvas(curr);
+    if (saved) {
+      setNodes(saved.nodes);
+      setEdges(saved.edges);
+    } else {
+      setNodes([...DEFAULT_NODES]);
+      setEdges([]);
+    }
+
+    // Reset view
+    setPan({ x: window.innerWidth / 2 - 160, y: 100 });
+    setZoom(1);
+  }, [demo.currentScenario]);
   useEffect(() => {
     localStorage.setItem('goprod_nodes', JSON.stringify(nodes));
   }, [nodes]);
