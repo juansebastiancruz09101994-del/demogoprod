@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Layers, X, Move, Maximize, ZoomIn, ZoomOut, Trash2, Download, MessageSquare } from "lucide-react";
+import { Layers, X, Move, Maximize, ZoomIn, ZoomOut, Trash2, Download, MessageSquare, GraduationCap } from "lucide-react";
 import { FeedbackModal } from "./FeedbackModal";
 import { exportStrategyPDF } from "./ExportPDF";
 import { Node } from "./Node";
@@ -7,12 +7,13 @@ import { ConnectionLine } from "./ConnectionLine";
 import { ReportPanel } from "./ReportPanel";
 import { MODULES } from "./modules";
 import { NodeData, Edge, ReportData } from "./types";
+import { DemoProvider, useDemo, ScenarioCards, DemoOverlay, DEMO_SCENARIOS } from "./DemoMode";
 
 const DEFAULT_NODES: NodeData[] = [
   { id: "root", type: "production_target", x: 0, y: 0, data: { target: 280000 } },
 ];
 
-export const SimulationMap = () => {
+const SimulationMapInner = () => {
   const [nodes, setNodes] = useState<NodeData[]>(() => {
     try {
       const saved = localStorage.getItem('goprod_nodes');
@@ -46,6 +47,8 @@ export const SimulationMap = () => {
   const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 });
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
+  const demo = useDemo();
+
   // Persist state to localStorage
   useEffect(() => {
     localStorage.setItem('goprod_nodes', JSON.stringify(nodes));
@@ -62,6 +65,42 @@ export const SimulationMap = () => {
       localStorage.removeItem('goprod_report');
     }
   }, [reportData]);
+
+  // Demo: detect report loaded
+  useEffect(() => {
+    if (demo.isDemoActive && reportData && !demo.reportLoaded) {
+      demo.setReportLoaded(true);
+      // Auto-select scenario 1
+      demo.selectScenario(1);
+    }
+  }, [reportData, demo.isDemoActive, demo.reportLoaded]);
+
+  // Demo: open feedback after all scenarios done
+  useEffect(() => {
+    if (demo.isDemoActive && demo.currentScenario === 4) {
+      setFeedbackOpen(true);
+    }
+  }, [demo.currentScenario, demo.isDemoActive]);
+
+  // Demo: detect step completion
+  useEffect(() => {
+    if (!demo.isDemoActive) return;
+    const step = demo.getCurrentStep();
+    if (!step) return;
+
+    if (step.targetType === 'fill-input' && step.targetNodeType && step.targetVariable && step.expectedValue !== undefined) {
+      const targetNode = nodes.find(n => n.type === step.targetNodeType);
+      if (targetNode) {
+        const currentValue = targetNode.data[step.targetVariable!] || 0;
+        const expected = step.expectedValue;
+        const tol = step.tolerance || 0.05;
+        if (expected !== 0 && Math.abs(currentValue - expected) / Math.abs(expected) <= tol) {
+          // Step completed!
+          setTimeout(() => demo.advanceStep(), 300);
+        }
+      }
+    }
+  }, [nodes, demo.isDemoActive, demo.currentScenario, demo.currentStep]);
 
   const handleCloseOverlay = () => {
     setShowOverlay(false);
@@ -241,6 +280,14 @@ export const SimulationMap = () => {
     setNodes((prev) => [...prev, newNode]);
     setEdges((prev) => [...prev, { from: parentId, to: newId }]);
     setSelectedNodeId(newId);
+
+    // Demo: detect click-suggestion step completion
+    if (demo.isDemoActive) {
+      const step = demo.getCurrentStep();
+      if (step && step.targetType === 'click-suggestion' && step.suggestionId === childType) {
+        setTimeout(() => demo.advanceStep(), 300);
+      }
+    }
   };
 
   const handleDelete = (id: string) => {
@@ -259,6 +306,29 @@ export const SimulationMap = () => {
     localStorage.removeItem('goprod_report');
     setPan({ x: window.innerWidth / 2 - 160, y: 100 });
     setZoom(1);
+  };
+
+  const handleStartDemo = () => {
+    // Reset everything first
+    setNodes([...DEFAULT_NODES]);
+    setEdges([]);
+    setReportData(null);
+    localStorage.removeItem('goprod_nodes');
+    localStorage.removeItem('goprod_edges');
+    localStorage.removeItem('goprod_report');
+    setPan({ x: window.innerWidth / 2 - 160, y: 100 });
+    setZoom(1);
+    demo.startDemo();
+  };
+
+  // Get current demo highlight info for nodes
+  const getDemoHighlight = (nodeType: string) => {
+    if (!demo.isDemoActive) return null;
+    const step = demo.getCurrentStep();
+    if (!step || step.targetNodeType !== nodeType) return null;
+    if (step.targetType !== 'fill-input' && step.targetType !== 'click-suggestion') return null;
+    const scenario = DEMO_SCENARIOS.find(s => s.id === demo.currentScenario);
+    return { step, accentColor: scenario?.accentColor ?? '#3b82f6' };
   };
 
   return (
@@ -281,7 +351,20 @@ export const SimulationMap = () => {
       />
 
       {/* Report Panel */}
-      <ReportPanel reportData={reportData} onReportLoaded={setReportData} onReportCleared={() => setReportData(null)} />
+      <ReportPanel
+        reportData={reportData}
+        onReportLoaded={setReportData}
+        onReportCleared={() => setReportData(null)}
+        demoHighlight={demo.isDemoActive && demo.currentScenario === 0 && !reportData}
+      />
+
+      {/* Demo Scenario Cards */}
+      {demo.isDemoActive && demo.reportLoaded && (
+        <ScenarioCards />
+      )}
+
+      {/* Demo Overlay */}
+      <DemoOverlay />
 
       {/* Welcome Modal */}
       {showOverlay && (
@@ -335,6 +418,18 @@ export const SimulationMap = () => {
       <FeedbackModal open={feedbackOpen} onOpenChange={setFeedbackOpen} />
 
       <div className="absolute bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-auto">
+        {/* Demo Mode Button */}
+        <button
+          onClick={handleStartDemo}
+          className={`p-2 rounded-lg shadow border transition-colors ${
+            demo.isDemoActive
+              ? 'bg-blue-600 text-white border-blue-500'
+              : 'bg-white text-slate-400 hover:text-blue-600 hover:border-blue-300 border-slate-200'
+          }`}
+          title="Modo Demo"
+        >
+          <GraduationCap className="w-4 h-4" />
+        </button>
         <button
           onClick={() => setFeedbackOpen(true)}
           className="bg-white p-2 rounded-lg shadow border border-slate-200 text-slate-400 hover:text-blue-600 hover:border-blue-300 transition-colors"
@@ -414,6 +509,7 @@ export const SimulationMap = () => {
               onDelete={handleDelete}
               isSelected={selectedNodeId === node.id}
               onSelect={setSelectedNodeId}
+              demoHighlight={getDemoHighlight(node.type)}
             />
           ))}
         </div>
@@ -428,3 +524,9 @@ export const SimulationMap = () => {
     </div>
   );
 };
+
+export const SimulationMap = () => (
+  <DemoProvider>
+    <SimulationMapInner />
+  </DemoProvider>
+);
