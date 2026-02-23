@@ -103,6 +103,38 @@ const SimulationMapInner = () => {
     }
   }, [reportData, demo.isDemoActive, demo.reportLoaded]);
 
+  // Demo: auto-pan to target node when step changes
+  const [isAutoPanning, setIsAutoPanning] = useState(false);
+  useEffect(() => {
+    if (!demo.isDemoActive) return;
+    const step = demo.getCurrentStep();
+    if (!step || !step.targetNodeType) return;
+    const targetNode = nodes.find(n => n.type === step.targetNodeType);
+    if (!targetNode) return;
+
+    const screenX = targetNode.x * zoom + pan.x;
+    const screenY = targetNode.y * zoom + pan.y;
+    const nodeW = 320 * zoom;
+    const nodeH = 200 * zoom;
+    const nodeCenterX = screenX + nodeW / 2;
+    const nodeCenterY = screenY + nodeH / 2;
+    const margin = 150;
+
+    const inView =
+      nodeCenterX > margin &&
+      nodeCenterX < window.innerWidth - margin &&
+      nodeCenterY > margin &&
+      nodeCenterY < window.innerHeight - margin;
+
+    if (!inView) {
+      setIsAutoPanning(true);
+      const newPanX = window.innerWidth / 2 - (targetNode.x + 160) * zoom;
+      const newPanY = window.innerHeight / 2 - (targetNode.y + 100) * zoom;
+      setPan({ x: newPanX, y: newPanY });
+      setTimeout(() => setIsAutoPanning(false), 450);
+    }
+  }, [demo.currentStep, demo.currentScenario, demo.isDemoActive]);
+
   // Demo: open feedback after all scenarios done
   useEffect(() => {
     if (demo.isDemoActive && demo.currentScenario === 4) {
@@ -510,6 +542,7 @@ const SimulationMapInner = () => {
         className="absolute top-0 left-0 w-full h-full origin-top-left pointer-events-none"
         style={{
           transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+          transition: isAutoPanning ? 'transform 0.4s ease' : 'none',
         }}
       >
         <svg className="absolute overflow-visible top-0 left-0 w-full h-full z-0">
