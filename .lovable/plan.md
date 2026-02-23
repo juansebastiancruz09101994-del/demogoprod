@@ -1,60 +1,105 @@
 
 
-## Reducir pasos del Escenario 1 (y ajustar 2 y 3)
+## Corregir Escenarios 1, 2 y 3 del Modo Demo
 
-### Problema
-El Escenario 1 tiene 17 pasos, pero la metodologia real solo tiene ~9 acciones logicas. Los pasos actuales son demasiado granulares: separan cada clic de cada input, e incluyen nodos intermedios innecesarios (como Fuerza Laboral en el Escenario 1).
+### Problema 1: Escenario 1 omite Fuerza Laboral
+El ultimo cambio elimino el nodo de Fuerza Laboral del Escenario 1, pero es necesario que el estudiante lo calcule: 915,600 hrs / 500 hrs = 1,831.2 trabajadores. La decision de poner 1,852 o 1,831 en el costo de MO es del estudiante.
 
-### Archivo a modificar
-`src/components/SimulationMap/DemoMode/demoScenarios.ts`
+### Problema 2: Escenario 2 no crea los nodos necesarios
+El canvas del Escenario 2 esta limpio (solo tiene production_target), pero los pasos asumen que ya existen nodos como material_needs, labor_needs, workforce, hiring, cost_material, cost_labor y total_cost. Faltan los `click-suggestion` para crearlos.
 
-### Escenario 1 - Pasos propuestos (9 pasos, antes 17)
+---
 
-| # | Accion | Detalle |
-|---|--------|---------|
-| 1 | fill-input | Escribir 210,000 en Unidades Objetivo |
-| 2 | click-suggestion | Clic en "+ Calcular Materia Prima" |
-| 3 | fill-input | Tasa de Uso MP: 3.90 |
-| 4 | click-suggestion | Clic en "+ Calcular Horas Mano de Obra" |
-| 5 | fill-input | Tasa MO: 4.36 |
-| 6 | click-suggestion | En Req. MP, clic en "+ Calcular Costo Material" |
-| 7 | fill-input | Precio MP: $2.25 |
-| 8 | click-suggestion | En Req. MO, clic en "+ Calcular Costo MO" (directo, sin pasar por Fuerza Laboral) |
-| 9 | fill-input | Workers: 1,852, Wage: $2.30, Hours: 500 (un solo paso con 3 valores) |
-| 10 | click-suggestion | En Costo Material, clic en "+ Anadir al Costo Total" |
-| 11 | fill-input | Costos Fijos: $400,000 |
-| 12 | click-suggestion | Clic en "+ Calcular Costo Unitario" |
-| 13 | info | Escenario 1 completado. Costo Unitario ~$20.71 |
+### Escenario 1 - Pasos corregidos (16 pasos)
 
-**Cambios clave vs. actual:**
-- Se elimina el nodo intermedio "Fuerza Laboral" (workforce) del Escenario 1. Se va directo de labor_needs a cost_labor.
-- Se eliminan los 3 pasos separados de cost_labor (workers, wage, hours) y se dejan como un solo paso que pide llenar los 3. La validacion se hara con el ultimo valor ingresado.
-- Total: 13 pasos (vs 17 actuales)
+Se restaura el nodo workforce entre labor_needs y cost_labor:
 
-Nota: si se prefiere aun menos pasos, los click-suggestion podrian combinarse con el fill-input siguiente, pero eso requeriria cambiar la logica de deteccion en SimulationMap. La reduccion principal viene de eliminar workforce y consolidar los 3 inputs de cost_labor.
+| # | Tipo | Nodo | Variable | Valor | Mensaje |
+|---|------|------|----------|-------|---------|
+| 1 | fill-input | production_target | target | 210,000 | Unidades objetivo al 80% capacidad |
+| 2 | click-suggestion | production_target | - | material_needs | Crear nodo Req. MP |
+| 3 | fill-input | material_needs | rate | 3.90 | Tasa MP. Req = 819,000 uds |
+| 4 | click-suggestion | production_target | - | labor_needs | Crear nodo Req. MO |
+| 5 | fill-input | labor_needs | rate | 4.36 | Tasa MO. Req = 915,600 hrs |
+| 6 | click-suggestion | material_needs | - | cost_material | Crear nodo Costo Material |
+| 7 | fill-input | cost_material | price | 2.25 | Precio MP. Costo = $1,842,750 |
+| 8 | click-suggestion | labor_needs | - | workforce | Crear nodo Fuerza Laboral |
+| 9 | fill-input | workforce | hrs_per_worker | 500 | Hrs por trabajador |
+| 10 | info | - | - | - | Resultado: 915,600/500 = 1,831.2 trabajadores necesarios. Pero tienes 1,852. Tu decides si despides o pagas a todos. |
+| 11 | click-suggestion | workforce | - | cost_labor | Crear nodo Costo MO |
+| 12 | fill-input | cost_labor | workers | 1852 | Trabajadores (1,852 o 1,831 segun tu decision) - tolerancia amplia |
+| 13 | fill-input | cost_labor | wage | 2.30 | Salario/hora |
+| 14 | fill-input | cost_labor | hours | 500 | Horas/trabajador |
+| 15 | click-suggestion | cost_material | - | total_cost | Crear nodo Costo Total |
+| 16 | fill-input | total_cost | fix_cost | 400,000 | Costos fijos |
+| 17 | click-suggestion | total_cost | - | unit_cost | Crear nodo Costo Unitario |
+| 18 | info | - | - | - | Completado. Costo Unitario aprox $20.71 |
 
-### Escenario 2 - Ajustes (10 pasos, se mantiene similar)
+Nota: La tolerancia del paso 12 (workers) sera amplia (ej. 0.02) para aceptar tanto 1852 como 1831.
 
-Se mantiene la misma cantidad de pasos porque este escenario SI requiere el nodo de workforce y hiring. Solo se ajusta que en el Escenario 2, los nodos ya no existen (canvas limpio), asi que se necesitan los click-suggestion para crearlos.
+### Escenario 2 - Pasos corregidos (con click-suggestion para crear nodos)
 
-### Escenario 3 - Ajustes (11 pasos, se mantiene similar)
+Como el canvas empieza limpio, cada nodo debe crearse via click-suggestion antes de llenarlo:
 
-Se mantiene porque tiene pasos informativos necesarios sobre la dinamica de inventario.
+| # | Tipo | Nodo | Variable | Valor | Mensaje |
+|---|------|------|----------|-------|---------|
+| 1 | fill-input | production_target | target | 263,420 | Maxima capacidad |
+| 2 | click-suggestion | production_target | - | material_needs | Crear Req. MP |
+| 3 | fill-input | material_needs | rate | 3.90 | Tasa MP |
+| 4 | click-suggestion | production_target | - | labor_needs | Crear Req. MO |
+| 5 | fill-input | labor_needs | rate | 4.36 | Tasa MO. Req = 1,148,511 hrs |
+| 6 | click-suggestion | labor_needs | - | workforce | Crear Fuerza Laboral |
+| 7 | fill-input | workforce | hrs_per_worker | 500 | Hrs por trabajador |
+| 8 | info | - | - | - | Necesitas 2,297 trabajadores pero solo tienes 1,852. Deficit enorme. |
+| 9 | click-suggestion | workforce | - | hiring | Crear nodo Contratacion |
+| 10 | fill-input | hiring | current | 1,852 | Fuerza laboral actual |
+| 11 | info | - | - | - | Regla 2x: Nuevos = (2,297 - 1,852) x 2 = 891. Total = 2,743. |
+| 12 | click-suggestion | workforce | - | cost_labor | Crear Costo MO |
+| 13 | fill-input | cost_labor | workers | 2,743 | Total trabajadores con nuevos |
+| 14 | fill-input | cost_labor | wage | 2.30 | Salario |
+| 15 | fill-input | cost_labor | hours | 500 | Horas |
+| 16 | click-suggestion | material_needs | - | cost_material | Crear Costo Material |
+| 17 | fill-input | cost_material | price | 2.25 | Precio MP |
+| 18 | click-suggestion | cost_material | - | total_cost | Crear Costo Total |
+| 19 | fill-input | total_cost | fix_cost | 400,000 | Costos fijos |
+| 20 | click-suggestion | total_cost | - | unit_cost | Crear Costo Unitario |
+| 21 | info | - | - | - | Completado. Costo Unitario aprox $22.27 |
 
-### Detalle tecnico
+### Escenario 3 - Pasos corregidos (con click-suggestion para crear nodos)
 
-En `demoScenarios.ts`, se reescribe el array `steps` del Escenario 1 eliminando:
-- Paso 8-9 actual (workforce + hrs_per_worker) - se reemplaza la sugerencia de "Calcular Fuerza Laboral" por ir directo a "Calcular Costo Mano de Obra" desde labor_needs
-- Pasos 11-13 actuales (3 fills separados de cost_labor) - se consolidan en un solo paso que pide llenar workers primero, luego wage y hours se validan en pasos rapidos
+Mismo patron: canvas limpio, crear nodos paso a paso:
 
-La suggestion `cost_labor` ya existe en `workforce.suggestions`, pero tambien se puede acceder desde `labor_needs` si se agrega ahi. Revisando el modulo `labor_needs`, solo tiene `workforce` como sugerencia. Entonces habria dos opciones:
+| # | Tipo | Nodo | Variable | Valor | Mensaje |
+|---|------|------|----------|-------|---------|
+| 1 | fill-input | production_target | target | 180,000 | Produccion reducida |
+| 2 | click-suggestion | production_target | - | material_needs | Crear Req. MP |
+| 3 | fill-input | material_needs | rate | 3.90 | Tasa MP. Req = 702,000 uds |
+| 4 | info | - | - | - | Dinamica de inventario: 400k a $2.25, faltan 302k a $2.8125 |
+| 5 | click-suggestion | material_needs | - | cost_material | Crear Costo Material |
+| 6 | fill-input | cost_material | units | 702,000 | Total MP necesaria |
+| 7 | fill-input | cost_material | price | 2.4921 | Precio ponderado |
+| 8 | info | - | - | - | Costo MP = $1,749,375 |
+| 9 | click-suggestion | production_target | - | labor_needs | Crear Req. MO |
+| 10 | fill-input | labor_needs | rate | 4.36 | Tasa MO |
+| 11 | click-suggestion | labor_needs | - | workforce | Crear Fuerza Laboral |
+| 12 | fill-input | workforce | hrs_per_worker | 500 | Hrs por trabajador |
+| 13 | info | - | - | - | Solo necesitas 1,569.6 trabajadores pero pagas a los 1,852 completos (costo hundido) |
+| 14 | click-suggestion | workforce | - | cost_labor | Crear Costo MO |
+| 15 | fill-input | cost_labor | workers | 1,852 | Pagas a toda la plantilla |
+| 16 | fill-input | cost_labor | wage | 2.30 | Salario |
+| 17 | fill-input | cost_labor | hours | 500 | Horas. Costo MO = $2,129,800 |
+| 18 | click-suggestion | cost_material | - | total_cost | Crear Costo Total |
+| 19 | fill-input | total_cost | fix_cost | 400,000 | Costos fijos |
+| 20 | click-suggestion | total_cost | - | unit_cost | Crear Costo Unitario |
+| 21 | info | - | - | - | Completado. Costo Unitario aprox $23.77 |
 
-**Opcion A**: Agregar `cost_labor` como sugerencia directa en `labor_needs` en `modules.tsx`
-**Opcion B**: Mantener la ruta workforce -> cost_labor pero solo en escenario 2
+---
 
-Se recomienda **Opcion A** para simplificar el Escenario 1.
+### Cambios en modules.tsx
+
+Revertir el cambio anterior: quitar `cost_labor` de las sugerencias de `labor_needs` (ya no se necesita, se va por workforce). Las sugerencias de labor_needs vuelven a ser solo `workforce` y `cost_labor` (mantener ambas para uso libre fuera del demo).
 
 ### Archivos a modificar
-1. `src/components/SimulationMap/modules.tsx` - agregar sugerencia `cost_labor` en `labor_needs`
-2. `src/components/SimulationMap/DemoMode/demoScenarios.ts` - reescribir steps del Escenario 1
+1. `src/components/SimulationMap/DemoMode/demoScenarios.ts` - reescribir los 3 escenarios completos
+2. `src/components/SimulationMap/modules.tsx` - sin cambios (mantener cost_labor como opcion en labor_needs)
 
