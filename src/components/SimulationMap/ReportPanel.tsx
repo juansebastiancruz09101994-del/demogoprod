@@ -127,7 +127,7 @@ export const ReportPanel = ({ reportData, onReportLoaded, onReportCleared, demoH
       <div className="flex items-center justify-between px-4 py-3.5 bg-gradient-to-r from-blue-600 to-blue-700">
         <h2 className="font-semibold text-white flex items-center gap-2.5">
           <FileSpreadsheet className="w-5 h-5 text-blue-200" />
-          Reporte de Resultados del Q anterior
+          Reporte de Resultados del trimestre anterior
         </h2>
         <button
           onClick={handleCollapse}
