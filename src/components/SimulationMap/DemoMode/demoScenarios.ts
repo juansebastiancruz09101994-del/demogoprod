@@ -49,7 +49,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
         targetVariable: 'rate',
         expectedValue: 3.90,
         tolerance: 0.05,
-        message: 'Introduce la Tasa de Uso de MP: 3.90 (la ves en el panel izquierdo).',
+        message: 'Introduce la Tasa de Uso de MP: 3.90 (la ves en el panel izquierdo). Req. MP = 210,000 × 3.90 = 819,000 uds.',
         highlightTarget: 'node-input',
       },
       {
@@ -65,7 +65,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
         targetVariable: 'rate',
         expectedValue: 4.36,
         tolerance: 0.05,
-        message: 'Introduce la Tasa MO: 4.36 (la ves en el panel izquierdo).',
+        message: 'Introduce la Tasa MO: 4.36. Req. MO = 210,000 × 4.36 = 915,600 hrs. (Hay 926,000 hrs disponibles, suficiente sin contratar.)',
         highlightTarget: 'node-input',
       },
       {
@@ -81,30 +81,14 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
         targetVariable: 'price',
         expectedValue: 2.25,
         tolerance: 0.05,
-        message: 'Introduce el Precio por Unidad de MP: $2.25 (del panel izquierdo).',
+        message: 'Introduce el Precio por Unidad de MP: $2.25. Costo MP = 819,000 × $2.25 = $1,842,750.',
         highlightTarget: 'node-input',
       },
       {
         targetType: 'click-suggestion',
         targetNodeType: 'labor_needs',
-        suggestionId: 'workforce',
-        message: 'En Req. Mano de Obra, haz clic en "+ Calcular Fuerza Laboral".',
-        highlightTarget: 'node-suggestion',
-      },
-      {
-        targetType: 'fill-input',
-        targetNodeType: 'workforce',
-        targetVariable: 'hrs_per_worker',
-        expectedValue: 500,
-        tolerance: 0.01,
-        message: 'Introduce las Horas por Trabajador: 500.',
-        highlightTarget: 'node-input',
-      },
-      {
-        targetType: 'click-suggestion',
-        targetNodeType: 'workforce',
         suggestionId: 'cost_labor',
-        message: 'Haz clic en "+ Calcular Costo Mano de Obra".',
+        message: 'En Req. Mano de Obra, haz clic en "+ Calcular Costo Mano de Obra" (directo, sin pasar por Fuerza Laboral).',
         highlightTarget: 'node-suggestion',
       },
       {
@@ -113,7 +97,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
         targetVariable: 'workers',
         expectedValue: 1852,
         tolerance: 0.01,
-        message: 'Introduce Total Trabajadores: 1,852 (del panel). Se paga a toda la plantilla.',
+        message: 'Introduce Total Trabajadores: 1,852. Luego llena Salario ($2.30) y Horas (500).',
         highlightTarget: 'node-input',
       },
       {
@@ -122,7 +106,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
         targetVariable: 'wage',
         expectedValue: 2.30,
         tolerance: 0.05,
-        message: 'Introduce el Salario por Hora: $2.30 (del panel izquierdo).',
+        message: 'Salario por Hora: $2.30.',
         highlightTarget: 'node-input',
       },
       {
@@ -131,7 +115,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
         targetVariable: 'hours',
         expectedValue: 500,
         tolerance: 0.01,
-        message: 'Introduce Horas/Trabajador: 500.',
+        message: 'Horas/Trabajador: 500. Costo MO = 1,852 × 500 × $2.30 = $2,129,800.',
         highlightTarget: 'node-input',
       },
       {
@@ -147,7 +131,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
         targetVariable: 'fix_cost',
         expectedValue: 400000,
         tolerance: 0.01,
-        message: 'Introduce los Costos Fijos: $400,000 (del panel izquierdo).',
+        message: 'Introduce los Costos Fijos: $400,000. Costo Total = $1,842,750 + $2,129,800 + $400,000 = $4,372,550.',
         highlightTarget: 'node-input',
       },
       {
@@ -159,7 +143,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
       },
       {
         targetType: 'info',
-        message: '🎉 ¡Escenario 1 completado! El Costo Unitario es ~$20.71. Ahora pasemos al Escenario 2.',
+        message: '🎉 ¡Escenario 1 completado! Costo Unitario = $4,348,630 / 210,000 ≈ $20.71. Ahora pasemos al Escenario 2.',
       },
     ],
   },
