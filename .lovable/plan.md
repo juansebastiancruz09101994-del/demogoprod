@@ -1,71 +1,44 @@
 
+## Flecha animada apuntando a la tarjeta del escenario activo
 
-## Dos correcciones: Tolerancia en Escenario 3 + Auto-pan hacia nodo activo
+### Que se hara
+Agregar una flecha flotante animada (bouncing) al lado izquierdo de la tarjeta del escenario que el estudiante debe seleccionar. La flecha aparece en tres momentos:
+1. Despues de cargar el Excel, apunta a "Situacion 1 - Operacion Optima"
+2. Al completar el Escenario 1, apunta a "Situacion 2 - Maxima Capacidad"
+3. Al completar el Escenario 2, apunta a "Situacion 3 - Crisis de Suministros"
 
-### Problema 1: Escenario 3, paso 15 (workers)
-El paso actual tiene `expectedValue: 1852` con `tolerance: 0.01`, lo que obliga al estudiante a poner 1,852. Pero como solo se necesitan ~1,569.6 trabajadores, el estudiante podria decidir despedir a los que sobran. Hay que ampliar la tolerancia para aceptar ambos valores (igual que en el Escenario 1).
+La flecha desaparece una vez que el estudiante expande la tarjeta (da clic).
 
-**Solucion**: Cambiar `tolerance` de `0.01` a `0.10` y actualizar el mensaje para indicar que es decision del estudiante (1,852 o ~1,570).
+### Logica de visibilidad
+La flecha se muestra cuando:
+- El escenario esta activo (`currentScenario === scenario.id`)
+- La tarjeta NO esta expandida (`scenarioExpanded !== scenario.id`)
+- El escenario NO esta completado
 
-### Problema 2: El canvas no se mueve hacia el nodo objetivo
-A medida que se crean nodos, la cadena crece y el nodo que el demo pide tocar puede quedar fuera de la pantalla. El estudiante se pierde.
+Esto cubre el caso inicial (report loaded, scenario 1 seleccionado pero no expandido) y las transiciones entre escenarios.
 
-**Solucion**: Agregar un auto-pan suave que centre la vista en el nodo objetivo del paso actual cada vez que cambia el paso del demo. Se busca el nodo por `targetNodeType`, se calcula su posicion en pantalla, y si esta fuera del area visible (o parcialmente oculto), se anima el `pan` para centrarlo.
+### Detalle tecnico
 
----
+**Archivo: `src/components/SimulationMap/DemoMode/ScenarioCards.tsx`**
 
-### Cambios tecnicos
+- Importar `ArrowLeft` de lucide-react (flecha apuntando hacia la tarjeta desde la izquierda)
+- Dentro del map de cada tarjeta, agregar un div posicionado a la izquierda de la tarjeta con la flecha
+- Condicion: `isActive && !isExpanded && !isCompleted`
+- La flecha tendra una animacion CSS de bounce horizontal (izquierda-derecha) para llamar la atencion
 
-**1. `demoScenarios.ts`** (linea 430-436)
-- Cambiar paso 15 del Escenario 3:
-  - `tolerance: 0.01` a `tolerance: 0.10`
-  - Mensaje: "Total Trabajadores: 1,852 o ~1,570 (tu decides si despides a los que sobran o pagas a todos)."
+**Archivo: `tailwind.config.ts`**
 
-**2. `SimulationMap.tsx`**
-- Agregar un `useEffect` que observe `demo.currentStep` y `demo.currentScenario`:
-  - Obtiene el paso actual con `demo.getCurrentStep()`
-  - Si el paso tiene `targetNodeType`, busca el nodo correspondiente en `nodes`
-  - Calcula la posicion del nodo en pantalla: `screenX = node.x * zoom + pan.x`
-  - Si el nodo esta fuera del viewport (con margen), anima el `pan` para centrarlo
-  - La animacion usa `requestAnimationFrame` con interpolacion suave (o un simple `setTimeout` con transicion CSS)
-  - No cambia el zoom, solo el pan
+- Agregar keyframe `bounce-left`:
+  - `0%, 100%`: translateX(0)
+  - `50%`: translateX(-8px)
+- Agregar animation `bounce-left: bounce-left 1s ease-in-out infinite`
 
-Logica del auto-pan:
-```text
-useEffect:
-  if !demo.isDemoActive: return
-  step = demo.getCurrentStep()
-  if !step || !step.targetNodeType: return
-  targetNode = nodes.find(n => n.type === step.targetNodeType)
-  if !targetNode: return
-
-  // Posicion del nodo en pantalla
-  screenX = targetNode.x * zoom + pan.x
-  screenY = targetNode.y * zoom + pan.y
-  nodeW = 320 * zoom
-  nodeH = 200 * zoom
-
-  // Centro del nodo en pantalla
-  nodeCenterX = screenX + nodeW / 2
-  nodeCenterY = screenY + nodeH / 2
-
-  // Margen de seguridad (150px desde el borde)
-  margin = 150
-  inView = nodeCenterX > margin
-         && nodeCenterX < window.innerWidth - margin
-         && nodeCenterY > margin
-         && nodeCenterY < window.innerHeight - margin
-
-  if !inView:
-    // Nuevo pan para centrar el nodo
-    newPanX = window.innerWidth / 2 - (targetNode.x + 160) * zoom
-    newPanY = window.innerHeight / 2 - (targetNode.y + 100) * zoom
-    setPan({ x: newPanX, y: newPanY })
-```
-
-Para una transicion suave, se agrega `transition: transform 0.4s ease` al contenedor del canvas (el div con `transform: translate(pan) scale(zoom)`), y se activa temporalmente cuando el auto-pan se dispara.
+### Diseno visual
+- Flecha color acorde al escenario (emerald para 1, orange para 2, red para 3)
+- Posicionada a la izquierda de la tarjeta con `absolute -left-10`
+- Tamano: 24x24px
+- Con un texto pequeno "Haz clic aqui" debajo de la flecha (opcional, se puede omitir para mantenerlo limpio)
 
 ### Archivos a modificar
-1. `src/components/SimulationMap/DemoMode/demoScenarios.ts` - tolerancia del paso 15 en Escenario 3
-2. `src/components/SimulationMap/SimulationMap.tsx` - useEffect para auto-pan hacia nodo objetivo
-
+1. `tailwind.config.ts` - agregar keyframe y animacion bounce-left
+2. `src/components/SimulationMap/DemoMode/ScenarioCards.tsx` - agregar flecha animada condicional
