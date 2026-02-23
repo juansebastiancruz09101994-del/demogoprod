@@ -118,16 +118,10 @@ export const ReportPanel = ({ reportData, onReportLoaded, onReportCleared, demoH
       className={`
         fixed left-5 top-5 z-50 w-80 bg-white/95 backdrop-blur-md shadow-xl shadow-blue-500/10 
         rounded-2xl border overflow-hidden max-h-[calc(100vh-40px)] flex flex-col
-        ${demoHighlight && !reportData ? 'border-blue-400 ring-2 ring-blue-300' : 'border-blue-100'}
+        ${demoHighlight && !reportData ? 'border-blue-400' : 'border-blue-100'}
         ${isAnimating ? 'animate-slide-out-left' : 'animate-slide-in-left'}
       `}
     >
-      {/* Demo pulse indicator */}
-      {demoHighlight && !reportData && (
-        <div className="absolute -right-3 -top-3 z-10">
-          <GuidePulse color="#3b82f6" />
-        </div>
-      )}
 
       {/* Header - Blue Gradient */}
       <div className="flex items-center justify-between px-4 py-3.5 bg-gradient-to-r from-blue-600 to-blue-700">
@@ -172,7 +166,7 @@ export const ReportPanel = ({ reportData, onReportLoaded, onReportCleared, demoH
                 ${isDragOver 
                   ? 'border-blue-500 bg-blue-50 scale-[1.02]' 
                   : demoHighlight
-                    ? 'border-blue-400 bg-blue-50/80 animate-demo-pulse'
+                    ? 'border-blue-400 bg-blue-50/80'
                     : 'border-blue-200 hover:border-blue-400 hover:bg-blue-50/50'}
                 ${isLoading ? 'opacity-50 pointer-events-none' : ''}
               `}
@@ -190,7 +184,12 @@ export const ReportPanel = ({ reportData, onReportLoaded, onReportCleared, demoH
                   <Upload className="w-6 h-6 text-blue-600" />
                 </div>
                 <p className="text-sm font-medium text-blue-700">
-                  {isLoading ? 'Procesando...' : 'Subir Excel de reportes (no de decisiones)'}
+                  {isLoading ? 'Procesando...' : (
+                    <span className="inline-flex items-center gap-1.5">
+                      Subir Excel de reportes (no de decisiones)
+                      {demoHighlight && <GuidePulse color="#3b82f6" size="sm" />}
+                    </span>
+                  )}
                 </p>
                 <p className="text-xs text-blue-400 mt-1">
                   Arrastra o haz clic aquí
