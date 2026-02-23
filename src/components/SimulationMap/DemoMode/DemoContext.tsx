@@ -1,5 +1,11 @@
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { DEMO_SCENARIOS, DemoStep } from './demoScenarios';
+import { NodeData, Edge } from '../types';
+
+interface CanvasSnapshot {
+  nodes: NodeData[];
+  edges: Edge[];
+}
 
 interface DemoContextType {
   isDemoActive: boolean;
@@ -16,6 +22,8 @@ interface DemoContextType {
   getCurrentStep: () => DemoStep | null;
   isScenarioCompleted: (id: number) => boolean;
   completedScenarios: number[];
+  saveScenarioCanvas: (id: number, nodes: NodeData[], edges: Edge[]) => void;
+  loadScenarioCanvas: (id: number) => CanvasSnapshot | null;
 }
 
 const DemoContext = createContext<DemoContextType | null>(null);
@@ -33,6 +41,7 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
   const [scenarioExpanded, setScenarioExpanded] = useState<number | null>(null);
   const [reportLoaded, setReportLoaded] = useState(false);
   const [completedScenarios, setCompletedScenarios] = useState<number[]>([]);
+  const [scenarioCanvases, setScenarioCanvases] = useState<Record<number, CanvasSnapshot>>({});
 
   const startDemo = useCallback(() => {
     setIsDemoActive(true);
@@ -40,6 +49,7 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
     setCurrentStep(0);
     setScenarioExpanded(null);
     setCompletedScenarios([]);
+    setScenarioCanvases({});
   }, []);
 
   const exitDemo = useCallback(() => {
@@ -94,6 +104,14 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
     return completedScenarios.includes(id);
   }, [completedScenarios]);
 
+  const saveScenarioCanvas = useCallback((id: number, nodes: NodeData[], edges: Edge[]) => {
+    setScenarioCanvases(prev => ({ ...prev, [id]: { nodes: [...nodes], edges: [...edges] } }));
+  }, []);
+
+  const loadScenarioCanvas = useCallback((id: number): CanvasSnapshot | null => {
+    return scenarioCanvases[id] ?? null;
+  }, [scenarioCanvases]);
+
   return (
     <DemoContext.Provider value={{
       isDemoActive,
@@ -110,6 +128,8 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
       getCurrentStep,
       isScenarioCompleted,
       completedScenarios,
+      saveScenarioCanvas,
+      loadScenarioCanvas,
     }}>
       {children}
     </DemoContext.Provider>
