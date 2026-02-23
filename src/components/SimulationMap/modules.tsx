@@ -114,6 +114,7 @@ export const MODULES: Record<string, ModuleDefinition> = {
     },
     suggestions: [
       { id: 'workforce', label: 'Calcular Fuerza Laboral', map: { needed_hours: 'total_hours' } },
+      { id: 'cost_labor', label: 'Calcular Costo Mano de Obra', map: {} },
     ]
   },
   workforce: {
