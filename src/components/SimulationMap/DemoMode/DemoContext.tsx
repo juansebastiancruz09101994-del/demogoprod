@@ -19,6 +19,7 @@ interface DemoContextType {
   selectScenario: (id: number) => void;
   advanceStep: () => void;
   skipStep: () => void;
+  prevStep: () => void;
   getCurrentStep: () => DemoStep | null;
   isScenarioCompleted: (id: number) => boolean;
   completedScenarios: number[];
@@ -93,6 +94,10 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
     advanceStep();
   }, [advanceStep]);
 
+  const prevStep = useCallback(() => {
+    if (currentStep > 0) setCurrentStep(currentStep - 1);
+  }, [currentStep]);
+
   const getCurrentStep = useCallback((): DemoStep | null => {
     if (currentScenario === 0 || currentScenario > 3) return null;
     const scenario = DEMO_SCENARIOS.find(s => s.id === currentScenario);
@@ -125,6 +130,7 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
       selectScenario,
       advanceStep,
       skipStep,
+      prevStep,
       getCurrentStep,
       isScenarioCompleted,
       completedScenarios,

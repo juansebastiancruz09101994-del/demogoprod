@@ -27,7 +27,7 @@ const scenario1Steps: DemoStep[] = [
     targetVariable: 'target',
     expectedValue: 210000,
     tolerance: 0.01,
-    message: 'Escribe 210,000 en "Unidades Objetivo". Operaremos al 80% de capacidad.',
+    message: 'Calcula las "Unidades Objetivo". Según el enunciado, operamos al 80% de la capacidad de planta. Consulta la capacidad en el panel de reporte.',
     highlightTarget: 'node-input',
   },
   {
@@ -43,7 +43,7 @@ const scenario1Steps: DemoStep[] = [
     targetVariable: 'rate',
     expectedValue: 3.90,
     tolerance: 0.05,
-    message: 'Introduce la Tasa de Uso de MP: 3.90. Req. MP = 210,000 × 3.90 = 819,000 uds.',
+    message: 'Introduce la Tasa de Uso de MP. Puedes encontrarla en el panel de reporte del trimestre anterior.',
     highlightTarget: 'node-input',
   },
   {
@@ -59,7 +59,7 @@ const scenario1Steps: DemoStep[] = [
     targetVariable: 'rate',
     expectedValue: 4.36,
     tolerance: 0.05,
-    message: 'Introduce la Tasa MO: 4.36. Req. MO = 210,000 × 4.36 = 915,600 hrs.',
+    message: 'Introduce la Tasa de Mano de Obra. Consúltala en el panel de reporte del trimestre anterior.',
     highlightTarget: 'node-input',
   },
   {
@@ -75,7 +75,7 @@ const scenario1Steps: DemoStep[] = [
     targetVariable: 'price',
     expectedValue: 2.25,
     tolerance: 0.05,
-    message: 'Precio por Unidad de MP: $2.25. Costo MP = 819,000 × $2.25 = $1,842,750.',
+    message: 'Introduce el Precio por Unidad de MP. Revísalo en la sección de inventario del panel de reporte.',
     highlightTarget: 'node-input',
   },
   {
@@ -91,12 +91,12 @@ const scenario1Steps: DemoStep[] = [
     targetVariable: 'hrs_per_worker',
     expectedValue: 500,
     tolerance: 0.01,
-    message: 'Introduce Hrs/Trabajador: 500.',
+    message: 'Introduce las Horas por Trabajador. Consúltalo en la sección de productividad del panel de reporte.',
     highlightTarget: 'node-input',
   },
   {
     targetType: 'info',
-    message: '📊 Resultado: 915,600 / 500 = 1,831.2 trabajadores necesarios. Pero tienes 1,852. Tú decides: ¿despides a los que sobran o pagas a todos?',
+    message: '📊 Calcula cuántos trabajadores necesitas dividiendo las horas totales entre las horas por trabajador. Compara con la plantilla actual (panel de reporte). ¿Sobran o faltan? Tú decides qué hacer.',
   },
   {
     targetType: 'click-suggestion',
@@ -111,7 +111,7 @@ const scenario1Steps: DemoStep[] = [
     targetVariable: 'workers',
     expectedValue: 1852,
     tolerance: 0.02,
-    message: 'Total Trabajadores: escribe 1,852 (o 1,831 si decides despedir). Ambos valores son válidos.',
+    message: 'Introduce el Total de Trabajadores. Puedes pagar a toda la plantilla o solo a los necesarios. Tú decides.',
     highlightTarget: 'node-input',
   },
   {
@@ -120,7 +120,7 @@ const scenario1Steps: DemoStep[] = [
     targetVariable: 'wage',
     expectedValue: 2.30,
     tolerance: 0.05,
-    message: 'Salario por Hora: $2.30.',
+    message: 'Introduce el Salario por Hora. Consúltalo en el panel de reporte.',
     highlightTarget: 'node-input',
   },
   {
@@ -129,7 +129,7 @@ const scenario1Steps: DemoStep[] = [
     targetVariable: 'hours',
     expectedValue: 500,
     tolerance: 0.01,
-    message: 'Horas/Trabajador: 500. Costo MO = Trabajadores × 500 × $2.30.',
+    message: 'Introduce las Horas por Trabajador (mismo dato de productividad del reporte).',
     highlightTarget: 'node-input',
   },
   {
@@ -145,7 +145,7 @@ const scenario1Steps: DemoStep[] = [
     targetVariable: 'fix_cost',
     expectedValue: 400000,
     tolerance: 0.01,
-    message: 'Costos Fijos: $400,000.',
+    message: 'Introduce los Costos Fijos. Encuéntralos en el panel de reporte.',
     highlightTarget: 'node-input',
   },
   {
@@ -157,7 +157,7 @@ const scenario1Steps: DemoStep[] = [
   },
   {
     targetType: 'info',
-    message: '🎉 ¡Escenario 1 completado! Costo Unitario ≈ $20.71. Pasemos al Escenario 2.',
+    message: '🎉 ¡Escenario 1 completado! Revisa tu Costo Unitario. Pasemos al Escenario 2.',
   },
 ];
 
@@ -169,7 +169,7 @@ const scenario2Steps: DemoStep[] = [
     targetVariable: 'target',
     expectedValue: 263420,
     tolerance: 0.01,
-    message: 'Escribe 263,420 en "Unidades Objetivo" (máxima capacidad).',
+    message: 'Introduce las "Unidades Objetivo". En este escenario operamos a máxima capacidad. Consulta el dato en el panel de reporte.',
     highlightTarget: 'node-input',
   },
   {
@@ -185,7 +185,7 @@ const scenario2Steps: DemoStep[] = [
     targetVariable: 'rate',
     expectedValue: 3.90,
     tolerance: 0.05,
-    message: 'Tasa de Uso MP: 3.90. Req. MP = 263,420 × 3.90 = 1,027,338 uds.',
+    message: 'Introduce la Tasa de Uso de MP. Consúltala en el panel de reporte del trimestre anterior.',
     highlightTarget: 'node-input',
   },
   {
@@ -201,7 +201,7 @@ const scenario2Steps: DemoStep[] = [
     targetVariable: 'rate',
     expectedValue: 4.36,
     tolerance: 0.05,
-    message: 'Tasa MO: 4.36. Req. MO = 263,420 × 4.36 = 1,148,511 hrs.',
+    message: 'Introduce la Tasa de Mano de Obra. Consúltala en el panel de reporte.',
     highlightTarget: 'node-input',
   },
   {
@@ -217,12 +217,12 @@ const scenario2Steps: DemoStep[] = [
     targetVariable: 'hrs_per_worker',
     expectedValue: 500,
     tolerance: 0.01,
-    message: 'Hrs/Trabajador: 500. Necesitas 1,148,511 / 500 = 2,297 trabajadores.',
+    message: 'Introduce las Horas por Trabajador. Consúltalo en el panel de reporte.',
     highlightTarget: 'node-input',
   },
   {
     targetType: 'info',
-    message: '⚠️ Necesitas 2,297 trabajadores pero solo tienes 1,852. ¡Déficit enorme! Hay que contratar.',
+    message: '⚠️ Compara los trabajadores necesarios con la plantilla actual (panel de reporte). ¿Alcanza? Si hay déficit, necesitarás contratar.',
   },
   {
     targetType: 'click-suggestion',
@@ -237,12 +237,12 @@ const scenario2Steps: DemoStep[] = [
     targetVariable: 'current',
     expectedValue: 1852,
     tolerance: 0.01,
-    message: 'Fuerza Laboral Actual: 1,852 trabajadores.',
+    message: 'Introduce la Fuerza Laboral Actual. Encuéntrala en el panel de reporte.',
     highlightTarget: 'node-input',
   },
   {
     targetType: 'info',
-    message: '📊 Regla 2x: Nuevos = (2,297 − 1,852) × 2 = 891. Total nómina = 1,852 + 891 = 2,743.',
+    message: '📊 Aplica la Regla 2x: los nuevos contratados son el doble del déficit. Calcula el total de nómina sumando actuales + nuevos.',
   },
   {
     targetType: 'click-suggestion',
@@ -257,7 +257,7 @@ const scenario2Steps: DemoStep[] = [
     targetVariable: 'workers',
     expectedValue: 2743,
     tolerance: 0.02,
-    message: 'Total Trabajadores: 2,743 (1,852 + 891 nuevos).',
+    message: 'Introduce el Total de Trabajadores. Recuerda sumar los actuales más los nuevos contratados (Regla 2x).',
     highlightTarget: 'node-input',
   },
   {
@@ -266,7 +266,7 @@ const scenario2Steps: DemoStep[] = [
     targetVariable: 'wage',
     expectedValue: 2.30,
     tolerance: 0.05,
-    message: 'Salario por Hora: $2.30.',
+    message: 'Introduce el Salario por Hora. Consúltalo en el panel de reporte.',
     highlightTarget: 'node-input',
   },
   {
@@ -275,7 +275,7 @@ const scenario2Steps: DemoStep[] = [
     targetVariable: 'hours',
     expectedValue: 500,
     tolerance: 0.01,
-    message: 'Horas/Trabajador: 500. Costo MO = 2,743 × 500 × $2.30 = $3,154,450.',
+    message: 'Introduce las Horas por Trabajador (mismo dato de productividad del reporte).',
     highlightTarget: 'node-input',
   },
   {
@@ -291,7 +291,7 @@ const scenario2Steps: DemoStep[] = [
     targetVariable: 'price',
     expectedValue: 2.25,
     tolerance: 0.05,
-    message: 'Precio MP: $2.25. Costo MP = 1,027,338 × $2.25 = $2,311,510.50.',
+    message: 'Introduce el Precio por Unidad de MP. Revísalo en la sección de inventario del panel de reporte.',
     highlightTarget: 'node-input',
   },
   {
@@ -307,7 +307,7 @@ const scenario2Steps: DemoStep[] = [
     targetVariable: 'fix_cost',
     expectedValue: 400000,
     tolerance: 0.01,
-    message: 'Costos Fijos: $400,000.',
+    message: 'Introduce los Costos Fijos. Encuéntralos en el panel de reporte.',
     highlightTarget: 'node-input',
   },
   {
@@ -319,7 +319,7 @@ const scenario2Steps: DemoStep[] = [
   },
   {
     targetType: 'info',
-    message: '🎉 ¡Escenario 2 completado! Costo Unitario ≈ $22.27. La Regla 2x encarece la producción. Pasemos al Escenario 3.',
+    message: '🎉 ¡Escenario 2 completado! Compara tu Costo Unitario con el del Escenario 1. ¿Cuánto impacta la Regla 2x? Pasemos al Escenario 3.',
   },
 ];
 
@@ -331,7 +331,7 @@ const scenario3Steps: DemoStep[] = [
     targetVariable: 'target',
     expectedValue: 180000,
     tolerance: 0.01,
-    message: 'Escribe 180,000 en "Unidades Objetivo" (producción reducida por inflación).',
+    message: 'Introduce las "Unidades Objetivo". El enunciado indica una producción reducida por inflación. Lee el escenario para encontrar el dato.',
     highlightTarget: 'node-input',
   },
   {
@@ -347,12 +347,12 @@ const scenario3Steps: DemoStep[] = [
     targetVariable: 'rate',
     expectedValue: 3.90,
     tolerance: 0.05,
-    message: 'Tasa MP: 3.90. Req. MP = 180,000 × 3.90 = 702,000 uds.',
+    message: 'Introduce la Tasa de Uso de MP. Consúltala en el panel de reporte del trimestre anterior.',
     highlightTarget: 'node-input',
   },
   {
     targetType: 'info',
-    message: '📦 Dinámica de Inventario: Tienes 400,000 uds a $2.25 (precio viejo). Faltan 302,000 uds al precio nuevo ($2.25 × 1.25 = $2.8125).',
+    message: '📦 Dinámica de Inventario: Tienes stock a precio viejo (panel de reporte). El resto de la MP necesaria debe comprarse con el incremento del 25%. Calcula el precio ponderado.',
   },
   {
     targetType: 'click-suggestion',
@@ -367,7 +367,7 @@ const scenario3Steps: DemoStep[] = [
     targetVariable: 'units',
     expectedValue: 702000,
     tolerance: 0.01,
-    message: 'Total Unidades MP: 702,000.',
+    message: 'Introduce el Total de Unidades de MP. Es el resultado de multiplicar las unidades objetivo por la tasa de uso.',
     highlightTarget: 'node-input',
   },
   {
@@ -376,12 +376,12 @@ const scenario3Steps: DemoStep[] = [
     targetVariable: 'price',
     expectedValue: 2.4921,
     tolerance: 0.03,
-    message: 'Precio ponderado: (400k × $2.25 + 302k × $2.8125) / 702k ≈ $2.49.',
+    message: 'Calcula el Precio Ponderado de MP. Combina el stock a precio viejo y la compra nueva al precio inflado (+25%). Usa la fórmula de promedio ponderado.',
     highlightTarget: 'node-input',
   },
   {
     targetType: 'info',
-    message: '💡 Costo MP = $1,749,375. Combina stock a precio viejo + compra a precio inflado.',
+    message: '💡 Verifica tu cálculo: el precio ponderado combina inventario existente y compras nuevas. Revisa las cantidades de stock en el panel de reporte.',
   },
   {
     targetType: 'click-suggestion',
@@ -396,7 +396,7 @@ const scenario3Steps: DemoStep[] = [
     targetVariable: 'rate',
     expectedValue: 4.36,
     tolerance: 0.05,
-    message: 'Tasa MO: 4.36. Req. MO = 180,000 × 4.36 = 784,800 hrs.',
+    message: 'Introduce la Tasa de Mano de Obra. Consúltala en el panel de reporte.',
     highlightTarget: 'node-input',
   },
   {
@@ -412,12 +412,12 @@ const scenario3Steps: DemoStep[] = [
     targetVariable: 'hrs_per_worker',
     expectedValue: 500,
     tolerance: 0.01,
-    message: 'Hrs/Trabajador: 500. Solo necesitas 784,800 / 500 = 1,569.6 trabajadores.',
+    message: 'Introduce las Horas por Trabajador. Consúltalo en el panel de reporte.',
     highlightTarget: 'node-input',
   },
   {
     targetType: 'info',
-    message: '⚠️ COSTO HUNDIDO: Solo necesitas 1,569.6 trabajadores pero pagas a los 1,852 completos. Hay capacidad ociosa.',
+    message: '⚠️ Compara los trabajadores necesarios con la plantilla actual. Hay capacidad ociosa. El enunciado indica que se paga a TODOS los trabajadores. ¿Mantienes la plantilla completa o decides diferente?',
   },
   {
     targetType: 'click-suggestion',
@@ -432,7 +432,7 @@ const scenario3Steps: DemoStep[] = [
     targetVariable: 'workers',
     expectedValue: 1852,
     tolerance: 0.10,
-    message: 'Total Trabajadores: 1,852 o ~1,570 (tú decides si despides a los que sobran o pagas a todos).',
+    message: 'Introduce el Total de Trabajadores. ¿Pagas a toda la plantilla o solo a los necesarios? Tú decides.',
     highlightTarget: 'node-input',
   },
   {
@@ -441,7 +441,7 @@ const scenario3Steps: DemoStep[] = [
     targetVariable: 'wage',
     expectedValue: 2.30,
     tolerance: 0.05,
-    message: 'Salario por Hora: $2.30.',
+    message: 'Introduce el Salario por Hora. Consúltalo en el panel de reporte.',
     highlightTarget: 'node-input',
   },
   {
@@ -450,7 +450,7 @@ const scenario3Steps: DemoStep[] = [
     targetVariable: 'hours',
     expectedValue: 500,
     tolerance: 0.01,
-    message: 'Horas/Trabajador: 500. Costo MO = 1,852 × 500 × $2.30 = $2,129,800.',
+    message: 'Introduce las Horas por Trabajador (mismo dato de productividad del reporte).',
     highlightTarget: 'node-input',
   },
   {
@@ -466,7 +466,7 @@ const scenario3Steps: DemoStep[] = [
     targetVariable: 'fix_cost',
     expectedValue: 400000,
     tolerance: 0.01,
-    message: 'Costos Fijos: $400,000.',
+    message: 'Introduce los Costos Fijos. Encuéntralos en el panel de reporte.',
     highlightTarget: 'node-input',
   },
   {
@@ -478,7 +478,7 @@ const scenario3Steps: DemoStep[] = [
   },
   {
     targetType: 'info',
-    message: '🎉 ¡Escenario 3 completado! Costo Unitario ≈ $23.77. La inflación y la capacidad ociosa encarecen la producción.',
+    message: '🎉 ¡Escenario 3 completado! Compara tu Costo Unitario con los escenarios anteriores. ¿Cómo impactan la inflación y la capacidad ociosa?',
   },
 ];
 
