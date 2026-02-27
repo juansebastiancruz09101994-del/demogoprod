@@ -1,9 +1,9 @@
-import { X, SkipForward, GraduationCap } from 'lucide-react';
+import { X, SkipForward, SkipBack, GraduationCap } from 'lucide-react';
 import { useDemo } from './DemoContext';
 import { DEMO_SCENARIOS } from './demoScenarios';
 
 export const DemoOverlay = () => {
-  const { isDemoActive, currentScenario, currentStep, exitDemo, skipStep, getCurrentStep } = useDemo();
+  const { isDemoActive, currentScenario, currentStep, exitDemo, skipStep, prevStep, getCurrentStep } = useDemo();
 
   const step = getCurrentStep();
   if (!isDemoActive || !step) return null;
@@ -45,6 +45,15 @@ export const DemoOverlay = () => {
           </div>
 
           <div className="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-slate-100">
+            {currentStep > 0 && (
+              <button
+                onClick={prevStep}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-slate-500 hover:text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
+              >
+                <SkipBack className="w-3.5 h-3.5" />
+                Anterior
+              </button>
+            )}
             {step.targetType !== 'info' && (
               <button
                 onClick={skipStep}
