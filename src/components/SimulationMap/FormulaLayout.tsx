@@ -42,6 +42,7 @@ export const FormulaLayout = ({
             onChange={onInputChange}
             onTargetChange={onTargetChange}
             demoHighlight={demoHighlight}
+            guideHighlightFields={guideHighlightFields}
           />
         ))}
       </div>
@@ -63,6 +64,7 @@ export const FormulaLayout = ({
             onChange={onInputChange}
             onTargetChange={onTargetChange}
             demoHighlight={demoHighlight}
+            guideHighlightFields={guideHighlightFields}
           />
         ))}
       </div>
@@ -86,6 +88,7 @@ export const FormulaLayout = ({
             onInputChange={onInputChange}
             onTargetChange={onTargetChange}
             demoHighlight={demoHighlight}
+            guideHighlightFields={guideHighlightFields}
           />
         ))}
       </div>
@@ -107,6 +110,7 @@ export const FormulaLayout = ({
           onChange={onInputChange}
           onTargetChange={onTargetChange}
           demoHighlight={demoHighlight}
+          guideHighlightFields={guideHighlightFields}
           isResult
         />
       )}
