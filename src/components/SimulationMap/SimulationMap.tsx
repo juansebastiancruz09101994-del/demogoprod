@@ -390,16 +390,39 @@ const SimulationMapInner = () => {
   };
 
   const handleDelete = (id: string) => {
-    if (id === "root") return;
-    setNodes((prev) => prev.filter((n) => n.id !== id));
+    setNodes((prev) => {
+      const remaining = prev.filter((n) => n.id !== id);
+      if (remaining.length === 0) setShowModulePicker(true);
+      return remaining;
+    });
     setEdges((prev) => prev.filter((e) => e.from !== id && e.to !== id));
+  };
+
+  const handleSelectStartModule = (moduleId: string) => {
+    const moduleDef = MODULES[moduleId];
+    const initialData: Record<string, number> = {};
+    moduleDef.variables.forEach((v) => { initialData[v.id] = 0; });
+    
+    const newNode: NodeData = {
+      id: "root",
+      type: moduleId,
+      x: 0,
+      y: 0,
+      data: initialData,
+    };
+    setNodes([newNode]);
+    setEdges([]);
+    setShowModulePicker(false);
+    setPan({ x: window.innerWidth / 2 - 160, y: 100 });
+    setZoom(1);
   };
 
   const handleResetAll = () => {
     if (!window.confirm('¿Estás seguro de que quieres reiniciar el simulador? Se borrarán todos los cálculos.')) return;
-    setNodes([...DEFAULT_NODES]);
+    setNodes([]);
     setEdges([]);
     setReportData(null);
+    setShowModulePicker(true);
     localStorage.removeItem('goprod_nodes');
     localStorage.removeItem('goprod_edges');
     localStorage.removeItem('goprod_report');
@@ -408,10 +431,10 @@ const SimulationMapInner = () => {
   };
 
   const handleStartDemo = () => {
-    // Reset everything first
     setNodes([...DEFAULT_NODES]);
     setEdges([]);
     setReportData(null);
+    setShowModulePicker(false);
     localStorage.removeItem('goprod_nodes');
     localStorage.removeItem('goprod_edges');
     localStorage.removeItem('goprod_report');
