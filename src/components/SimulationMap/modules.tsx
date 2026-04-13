@@ -12,7 +12,6 @@ export const MODULES: Record<string, ModuleDefinition> = {
     color: 'bg-emerald-500',
     icon: <PlayCircle className="w-5 h-5" />,
     description: 'Establece tus objetivos de producción.',
-    isInputNode: true,
     baseFormula: 'Ingresa tus unidades objetivo manualmente.',
     variables: [
       { 
@@ -27,6 +26,8 @@ export const MODULES: Record<string, ModuleDefinition> = {
       { id: 'material_needs', label: 'Calcular Materia Prima', map: { target: 'target' } },
       { id: 'labor_needs', label: 'Calcular Horas Mano de Obra', map: { target: 'target' } },
       { id: 'packaging', label: 'Calcular Empaque', map: { target_finished: 'target' } },
+      { id: 'cost_material', label: 'Calcular Costo Material', map: {} },
+      { id: 'total_cost', label: 'Calcular Costo Total', map: {} },
     ]
   },
   material_needs: {
@@ -71,6 +72,7 @@ export const MODULES: Record<string, ModuleDefinition> = {
     suggestions: [
       { id: 'inventory_val', label: 'Ver Valor Inventario', map: { used_qty: 'total_mp' } },
       { id: 'cost_material', label: 'Calcular Costo Material', map: { units: 'total_mp' } },
+      { id: 'production_target', label: 'Definir Producción Objetivo', map: { target: 'target' } },
     ]
   },
   labor_needs: {
@@ -115,6 +117,7 @@ export const MODULES: Record<string, ModuleDefinition> = {
     suggestions: [
       { id: 'workforce', label: 'Calcular Fuerza Laboral', map: { needed_hours: 'total_hours' } },
       { id: 'cost_labor', label: 'Calcular Costo Mano de Obra', map: {} },
+      { id: 'production_target', label: 'Definir Producción Objetivo', map: { target: 'target' } },
     ]
   },
   workforce: {
@@ -284,6 +287,7 @@ export const MODULES: Record<string, ModuleDefinition> = {
     },
     suggestions: [
       { id: 'total_cost', label: 'Añadir al Costo Total', map: { mat_cost: 'cost' } },
+      { id: 'material_needs', label: 'Calcular Req. MP', map: { total_mp: 'units' } },
     ]
   },
   cost_labor: {
@@ -335,6 +339,8 @@ export const MODULES: Record<string, ModuleDefinition> = {
     },
     suggestions: [
       { id: 'total_cost', label: 'Añadir al Costo Total', map: { lab_cost: 'cost' } },
+      { id: 'labor_needs', label: 'Calcular Req. MO', map: {} },
+      { id: 'workforce', label: 'Calcular Fuerza Laboral', map: { workers_req: 'workers' } },
     ]
   },
   cost_packaging: {
@@ -444,6 +450,9 @@ export const MODULES: Record<string, ModuleDefinition> = {
     },
     suggestions: [
       { id: 'unit_cost', label: 'Calcular Costo Unitario', map: { total_cost: 'total' } },
+      { id: 'cost_material', label: 'Desglosar Costo Material', map: { cost: 'mat_cost' } },
+      { id: 'cost_labor', label: 'Desglosar Costo MO', map: { cost: 'lab_cost' } },
+      { id: 'cost_packaging', label: 'Desglosar Costo Empaque', map: { cost: 'disc_cost' } },
     ]
   },
   unit_cost: {
@@ -485,7 +494,9 @@ export const MODULES: Record<string, ModuleDefinition> = {
       if (tid === 'units') return v.u_cost ? v.total_cost / v.u_cost : null;
       return 0;
     },
-    suggestions: []
+    suggestions: [
+      { id: 'total_cost', label: 'Desglosar Costo Total', map: { total: 'total_cost' } },
+    ]
   },
   inventory_val: {
     id: 'inventory_val',
