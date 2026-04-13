@@ -90,9 +90,14 @@ export const Node = ({
   };
 
   const isHighlightedSuggestion = (suggestionId: string) => {
-    if (!demoHighlight) return false;
-    const { step } = demoHighlight;
-    return step.targetType === 'click-suggestion' && step.suggestionId === suggestionId;
+    // Demo highlight takes priority
+    if (demoHighlight) {
+      const { step } = demoHighlight;
+      return step.targetType === 'click-suggestion' && step.suggestionId === suggestionId;
+    }
+    // Guide highlight: all suggestions glow green when node is complete
+    if (guideHighlight?.highlightSuggestions) return true;
+    return false;
   };
 
   return (
@@ -146,6 +151,7 @@ export const Node = ({
           onInputChange={handleInputChange}
           onTargetChange={handleTargetChange}
           demoHighlight={demoHighlight}
+          guideHighlightFields={guideHighlight?.highlightFields}
         />
 
         {definition.suggestions && definition.suggestions.length > 0 && (
@@ -153,29 +159,38 @@ export const Node = ({
             <p className="text-[10px] uppercase font-bold text-slate-400 mb-2">Sugerencias</p>
             <div className="flex flex-wrap gap-2">
               {definition.suggestions.map((s) => {
-                const hasHighlight = isHighlightedSuggestion(s.id);
-                return (
-                  <button
-                    key={s.id}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onAddChild(node.id, s.id, s.map);
-                    }}
-                    className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs transition-colors border relative
-                      ${hasHighlight
-                        ? 'bg-yellow-100 text-yellow-800 border-yellow-400 ring-2 ring-yellow-300 animate-demo-pulse'
-                        : 'bg-slate-100 hover:bg-blue-100 text-slate-600 hover:text-blue-700 border-slate-200'
-                      }
-                    `}
-                  >
-                    {hasHighlight && (
-                      <span className="absolute -top-1 -right-1">
-                        <GuidePulse color={demoHighlight!.accentColor} size="sm" />
-                      </span>
-                    )}
-                    <Plus className="w-3 h-3" /> {s.label}
-                  </button>
-                );
+                    const hasDemoHL = demoHighlight && isHighlightedSuggestion(s.id);
+                    const hasGuideHL = !demoHighlight && guideHighlight?.highlightSuggestions;
+                    const hasHighlight = hasDemoHL || hasGuideHL;
+                    return (
+                      <button
+                        key={s.id}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onAddChild(node.id, s.id, s.map);
+                        }}
+                        className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs transition-colors border relative
+                          ${hasDemoHL
+                            ? 'bg-yellow-100 text-yellow-800 border-yellow-400 ring-2 ring-yellow-300 animate-demo-pulse'
+                            : hasGuideHL
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-300 ring-2 ring-emerald-200 animate-demo-pulse'
+                              : 'bg-slate-100 hover:bg-blue-100 text-slate-600 hover:text-blue-700 border-slate-200'
+                          }
+                        `}
+                      >
+                        {hasDemoHL && (
+                          <span className="absolute -top-1 -right-1">
+                            <GuidePulse color={demoHighlight!.accentColor} size="sm" />
+                          </span>
+                        )}
+                        {hasGuideHL && !hasDemoHL && (
+                          <span className="absolute -top-1 -right-1">
+                            <GuidePulse color="#10b981" size="sm" />
+                          </span>
+                        )}
+                        <Plus className="w-3 h-3" /> {s.label}
+                      </button>
+                    );
               })}
             </div>
           </div>
