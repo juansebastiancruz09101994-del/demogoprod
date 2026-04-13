@@ -1,44 +1,30 @@
 
 
-## Cambios: posición GoProd + formato numérico con separador de miles
+## Reestructurar el correo por fases del plan de trabajo
 
-### 1. Posición por defecto del asistente GoProd en la esquina superior derecha
+Se reescribirá el archivo `actualizacion_goprod.md` organizando el contenido en las tres etapas del plan de trabajo de Angélica, con los detalles que proporcionaste:
 
-En `GuideOverlay.tsx`, cambiar la posición inicial de `{ left: '50%', bottom: 80, transform: 'translateX(-50%)' }` a `{ right: 16, top: 16 }` (esquina superior derecha del canvas). Ajustar el estilo inline y la lógica de posición para que arranque ahí.
+### Estructura del correo
 
-### 2. Formato de miles automático + validación de comas en inputs numéricos
+**Encabezado**: Para Roberto, Daniel, Angélica, Angie. De Juan Sebastián Cruz.
 
-El input actual es `type="number"`, lo cual no permite formatear visualmente con comas. Para lograr el comportamiento deseado:
+**Fase 1 — Ajustes (27 mar – 10 abr)**
+- Rediseñar entrada en modo demo → hecho: el modo demo se mantiene como ejercicio lúdico-pedagógico, y además se implementó la misma filosofía de insights/pistas en cada nodo del árbol principal
+- Completar panel de reporte → hecho: se cambiaron nomenclaturas técnicas (MP → Materia Prima, MO → Mano de Obra) para mayor claridad
+- Resolver formato decimal → hecho: separadores de miles automáticos + validación que obliga a usar punto para decimales
 
-**En `FormulaLayout.tsx` (componente `VariableInput`):**
-- Cambiar `type="number"` → `type="text"` con `inputMode="decimal"`
-- Mantener un estado local `displayValue` (string formateado) separado del valor numérico real
-- Al escribir:
-  - Rechazar comas (`,`): si el usuario escribe una coma, colorear el borde en rojo y mostrar un mensaje inline pequeño ("Usa punto (.) para decimales")
-  - Permitir solo dígitos y un punto decimal
-  - Formatear automáticamente la parte entera con comas de miles (ej: `1,250,000`)
-  - Pasar el valor numérico limpio (`parseFloat`) al `onChange` existente
-- Al recibir un resultado calculado (campos `isTarget`/`isResult`), mostrar también formateado con comas de miles
+**Fase 2 — Implementación (10 – 21 abr)**
+- Retroalimentación en campos bloqueados → resuelto: ya no hay campos bloqueados; el bloqueo anterior se debía a la confusión punto/coma, ahora cubierto por la validación. Además las ayudas visuales son dinámicas y contextuales (no un flujo determinista)
+- Simplificar instrucciones → resuelto: el asistente GoProd es adaptativo; el estudiante elige su punto de partida y recibe pistas según el nodo activo. Crédito a Daniel por la idea de organizar celdas con símbolos matemáticos
+- Prueba con usuarios → pendiente, fuera de alcance. Sugerir prueba A/B con estudiantes de maestría para validar robustez
 
-**En `Node.tsx` (`handleInputChange`):**
-- Adaptar para recibir el valor numérico ya parseado (sin cambios significativos, porque el parsing se hará dentro de `VariableInput`)
+**Fase 3 — Cierre (21 – 28 abr)**
+- Definir posicionamiento → hipótesis: GoProd como complemento (no sustituto), a validar con la prueba de usuarios
+- Versión consolidada del prototipo → documentada, código en GitHub (enlace pendiente)
+- Entregas y recomendaciones → preguntar al equipo quién es responsable (¿Angélica, Daniel, Juan Sebastián, Roberto, todos?)
 
-### Detalle técnico del formateo
+**Cierre**: tono cordial, invitación a comentarios
 
-```text
-Usuario escribe: 1250000
-Se muestra: 1,250,000
-
-Usuario escribe: 4.30
-Se muestra: 4.30
-
-Usuario escribe: 4,30 (con coma)
-→ Borde rojo + tooltip: "Usa punto (.) para decimales"
-→ No se acepta el valor
-```
-
-### Archivos a modificar
-
-1. **`src/components/SimulationMap/Guide/GuideOverlay.tsx`** — posición inicial top-right
-2. **`src/components/SimulationMap/FormulaLayout.tsx`** — input text con formateo de miles, validación de coma, estado display local
+### Archivo a generar
+- `/mnt/documents/actualizacion_goprod_v2.md` — versión reestructurada por fases
 
