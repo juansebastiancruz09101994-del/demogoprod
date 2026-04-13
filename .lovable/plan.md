@@ -1,52 +1,26 @@
 
 
-## Propagacion de valores entre nodos conectados
+## Fix: Propagation should only recalculate the locked variable
 
-### Problema actual
-Cuando un estudiante cambia un valor en un nodo padre, los nodos hijos no se actualizan. Esto ocurre porque:
-1. El `Edge` solo almacena `{from, to}` — no guarda QUE variables estan conectadas
-2. `handleNodeUpdate` solo actualiza el nodo editado, sin recorrer el grafo
-3. El `varMap` de cada sugerencia solo se usa al momento de crear el nodo hijo, pero no se persiste
+### Problem
+When a value propagates from parent to child, the current code guesses which variable to recalculate by looking for empty/zero fields. This causes it to overwrite manually-entered values. For example, changing "Tasa MO" from 4.36 to 3.36 propagates `total_hours` correctly to the child "Tamaño Fuerza Laboral", but then the solver picks `hrs_per_worker` as the target instead of recalculating `workers_req` (which is the locked/calculated field).
 
-### Solucion
+### Root cause
+The `targetId` (which variable is "locked" for calculation) only lives in the `Node` component's local state. The `propagateValues` function in `SimulationMap.tsx` has no access to it, so it guesses wrong.
 
-#### 1. Extender el tipo `Edge` para almacenar el mapeo de variables
+### Solution
 
-```
-interface Edge {
-  from: string;
-  to: string;
-  varMap: Record<string, string>; // { childVar: parentVar }
-}
-```
+1. **Store `targetId` in `NodeData`** (`types.ts`): Add optional `targetId?: string` to the `NodeData` interface.
 
-Esto permite saber que, por ejemplo, el campo `target` del nodo hijo `material_needs` viene del campo `target` del nodo padre `production_target`.
+2. **Persist `targetId` from Node to parent** (`Node.tsx`): When the student changes which variable is locked (radio button), call a new callback `onTargetChange(nodeId, targetId)` to save it to the node data.
 
-#### 2. Funcion de propagacion en cascada
+3. **Use stored `targetId` during propagation** (`SimulationMap.tsx`):
+   - In `propagateValues`, instead of guessing the target variable, read `child.targetId` and use it directly for the `solve` call.
+   - Add `handleTargetChange` callback to update node's `targetId`.
+   - Fallback: if no `targetId` stored, use the first variable (current default in Node).
 
-Al actualizar un nodo, recorrer todas las aristas salientes, copiar los valores mapeados al nodo hijo, re-ejecutar su `solve`, y continuar recursivamente con los hijos de ese hijo (BFS o DFS con proteccion anti-ciclos).
-
-```text
-Usuario cambia "target" en production_target
-  → Edge dice: material_needs.target = production_target.target
-    → Copiar valor, re-solve material_needs
-      → Edge dice: cost_material.units = material_needs.total_mp
-        → Copiar valor, re-solve cost_material
-          → ... y asi sucesivamente
-```
-
-#### 3. Guardar varMap al crear aristas
-
-Modificar `handleAddChild` para incluir el `varMap` en la arista. Para aristas creadas por anti-duplicado, inferir el varMap de la sugerencia que lo origino.
-
-### Archivos a modificar
-
-1. **`src/components/SimulationMap/types.ts`** — Agregar `varMap` al tipo `Edge`
-2. **`src/components/SimulationMap/SimulationMap.tsx`** — Guardar varMap en aristas; implementar `propagateValues` recursivo en `handleNodeUpdate`; actualizar anti-duplicado para incluir varMap
-3. **`src/components/SimulationMap/Node.tsx`** — Sin cambios (ya llama `onUpdate` correctamente)
-
-### Consideraciones
-- Proteccion anti-ciclos: usar un `Set<string>` de nodos ya visitados durante la propagacion
-- La propagacion solo fluye en direccion `from → to` de cada arista
-- El `solve` del nodo hijo se ejecuta con su `targetId` actual para recalcular el campo derivado
+### Files to modify
+1. `src/components/SimulationMap/types.ts` — add `targetId?: string` to `NodeData`
+2. `src/components/SimulationMap/Node.tsx` — add `onTargetChange` prop; call it when radio changes
+3. `src/components/SimulationMap/SimulationMap.tsx` — add `handleTargetChange`; fix `propagateValues` to use stored `targetId`
 
