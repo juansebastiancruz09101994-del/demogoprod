@@ -68,6 +68,7 @@ const SimulationMapInner = () => {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   const demo = useDemo();
+  const guide = useGuide();
   const prevScenarioRef = useRef(demo.currentScenario);
 
   // Demo: swap canvas when scenario changes
@@ -538,6 +539,15 @@ const SimulationMapInner = () => {
     demo.startDemo();
   };
 
+  // Recompute guide whenever selected node or node data changes
+  useEffect(() => {
+    if (demo.isDemoActive) {
+      // Guide is disabled during demo
+      return;
+    }
+    guide.computeGuidance(selectedNodeId, nodes);
+  }, [selectedNodeId, nodes, demo.isDemoActive, guide.isGuideActive]);
+
   // Get current demo highlight info for nodes
   const getDemoHighlight = (nodeType: string) => {
     if (!demo.isDemoActive) return null;
@@ -546,6 +556,16 @@ const SimulationMapInner = () => {
     if (step.targetType !== 'fill-input' && step.targetType !== 'click-suggestion') return null;
     const scenario = DEMO_SCENARIOS.find(s => s.id === demo.currentScenario);
     return { step, accentColor: scenario?.accentColor ?? '#3b82f6' };
+  };
+
+  // Get guide highlight for a specific node
+  const getGuideHighlight = (nodeId: string) => {
+    if (demo.isDemoActive || !guide.isGuideActive) return null;
+    if (guide.activeNodeId !== nodeId) return null;
+    return {
+      highlightFields: guide.highlightFields,
+      highlightSuggestions: guide.highlightSuggestions,
+    };
   };
 
   return (
