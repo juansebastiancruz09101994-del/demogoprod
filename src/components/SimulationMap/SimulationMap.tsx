@@ -87,8 +87,9 @@ const SimulationMapInner = () => {
       setNodes(saved.nodes);
       setEdges(saved.edges);
     } else {
-      setNodes([...DEFAULT_NODES]);
+      setNodes([]);
       setEdges([]);
+      setShowModulePicker(true);
     }
 
     // Reset view
@@ -312,6 +313,27 @@ const SimulationMapInner = () => {
   const handleAddChild = (parentId: string, childType: string, varMap: Record<string, string>) => {
     const parent = nodes.find((n) => n.id === parentId);
     if (!parent) return;
+
+    // Anti-duplicate: if a node of this type already exists, connect to it instead
+    const existingNode = nodes.find((n) => n.type === childType);
+    if (existingNode) {
+      const edgeExists = edges.some(e => 
+        (e.from === parentId && e.to === existingNode.id) || 
+        (e.from === existingNode.id && e.to === parentId)
+      );
+      if (!edgeExists) {
+        setEdges((prev) => [...prev, { from: parentId, to: existingNode.id }]);
+      }
+      setSelectedNodeId(existingNode.id);
+      // Demo: detect click-suggestion step completion
+      if (demo.isDemoActive) {
+        const step = demo.getCurrentStep();
+        if (step && step.targetType === 'click-suggestion' && step.suggestionId === childType) {
+          setTimeout(() => demo.advanceStep(), 300);
+        }
+      }
+      return;
+    }
 
     const newId = `node_${Date.now()}`;
     const newY = parent.y + 350;
