@@ -603,6 +603,9 @@ const SimulationMapInner = () => {
       {/* Demo Overlay */}
       <DemoOverlay />
 
+      {/* Guide Overlay */}
+      {!demo.isDemoActive && <GuideOverlay />}
+
       {/* Module Picker */}
       {showModulePicker && !demo.isDemoActive && (
         <div className="fixed inset-0 z-[90] flex items-center justify-center pointer-events-none">
