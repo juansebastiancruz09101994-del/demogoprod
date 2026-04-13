@@ -66,20 +66,19 @@ export const MODULE_HINTS: Record<string, Record<string, string>> = {
   },
 };
 
-// Completion messages when all fields are filled
-export const COMPLETION_MESSAGES: Record<string, string> = {
-  production_target: '¡Objetivo definido! Ahora calcula los requerimientos de producción.',
-  material_needs: '¡Materia prima calculada! Puedes ver el valor de inventario o calcular el costo.',
-  labor_needs: '¡Horas calculadas! Determina cuántos trabajadores necesitas.',
-  workforce: '¡Fuerza laboral definida! ¿Necesitas contratar más personal?',
-  hiring: '¡Contratación calculada! Los nuevos trabajan al 50% de eficiencia.',
-  packaging: '¡Empaque listo! Calcula el costo de empaque.',
-  cost_material: '¡Costo de material listo! Agrégalo al costo total.',
-  cost_labor: '¡Costo laboral calculado! Agrégalo al costo total.',
-  cost_packaging: '¡Costo de empaque calculado! Agrégalo al costo total.',
-  total_cost: '¡Costo total de producción calculado! Determina el costo unitario.',
-  unit_cost: '¡Costo unitario calculado! Compáralo con el precio de venta.',
-  inventory_val: '¡Inventario valorado! Usa este precio ponderado en tus costos.',
+// Hints for each suggestion module — what data the student will need
+export const SUGGESTION_HINTS: Record<string, string> = {
+  material_needs: 'Necesitarás la Tasa de Uso de MP (panel de reporte, sección Producción).',
+  labor_needs: 'Necesitarás la Tasa de Mano de Obra en hrs/ud (panel de reporte, sección Producción).',
+  workforce: 'Necesitarás las Horas por Trabajador (~500 hrs/trimestre, sección Mano de Obra).',
+  hiring: 'Necesitarás la Fuerza Laboral Actual (trabajadores al cierre del periodo anterior).',
+  packaging: 'Necesitarás el Ratio de Empaque (uds empaque por ud terminada).',
+  cost_material: 'Necesitarás el Precio Promedio Ponderado de MP (sección Inventario MP).',
+  cost_labor: 'Necesitarás el Salario por Hora (sección Mano de Obra).',
+  cost_packaging: 'Necesitarás el Precio Unitario de Empaque.',
+  total_cost: 'Necesitarás Costos Fijos y Gastos Discrecionales (sección Costos).',
+  unit_cost: 'Necesitarás el Costo Total y las Unidades Producidas.',
+  inventory_val: 'Necesitarás Inventario Inicial, Precio Anterior y Datos de Compra.',
 };
 
-export const GENERIC_COMPLETION = '¡Bien hecho! Elige una sugerencia para continuar expandiendo tu análisis.';
+export const GENERIC_COMPLETION = '¡Cálculo completo! ¿Qué quieres calcular ahora?';
