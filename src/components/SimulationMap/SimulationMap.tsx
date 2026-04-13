@@ -45,6 +45,7 @@ const SimulationMapInner = () => {
     } catch { return []; }
   });
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string; descendants: string[] } | null>(null);
   const [showOverlay, setShowOverlay] = useState(() => {
     return !localStorage.getItem('goprod_welcomed');
   });
@@ -473,52 +474,22 @@ const SimulationMapInner = () => {
 
   const handleDelete = (id: string) => {
     const descendants = getDescendants(id, edges);
-    const totalToDelete = descendants.length + 1;
     const nodeDef = MODULES[nodes.find(n => n.id === id)?.type || ''];
     const nodeName = nodeDef?.title || 'este nodo';
+    setDeleteConfirm({ id, name: nodeName, descendants });
+  };
 
-    if (totalToDelete > 1) {
-      toast(`¿Eliminar "${nodeName}" y ${descendants.length} nodo(s) conectado(s)?`, {
-        description: 'Esta acción no se puede deshacer.',
-        action: {
-          label: 'Eliminar',
-          onClick: () => {
-            const idsToRemove = new Set([id, ...descendants]);
-            setNodes(prev => {
-              const remaining = prev.filter(n => !idsToRemove.has(n.id));
-              if (remaining.length === 0) setShowModulePicker(true);
-              return remaining;
-            });
-            setEdges(prev => prev.filter(e => !idsToRemove.has(e.from) && !idsToRemove.has(e.to)));
-            toast.success(`${totalToDelete} nodo(s) eliminados`);
-          },
-        },
-        cancel: {
-          label: 'Cancelar',
-          onClick: () => {},
-        },
-      });
-    } else {
-      toast(`¿Eliminar "${nodeName}"?`, {
-        description: 'Esta acción no se puede deshacer.',
-        action: {
-          label: 'Eliminar',
-          onClick: () => {
-            setNodes(prev => {
-              const remaining = prev.filter(n => n.id !== id);
-              if (remaining.length === 0) setShowModulePicker(true);
-              return remaining;
-            });
-            setEdges(prev => prev.filter(e => e.from !== id && e.to !== id));
-            toast.success('Nodo eliminado');
-          },
-        },
-        cancel: {
-          label: 'Cancelar',
-          onClick: () => {},
-        },
-      });
-    }
+  const confirmDelete = () => {
+    if (!deleteConfirm) return;
+    const { id, descendants } = deleteConfirm;
+    const idsToRemove = new Set([id, ...descendants]);
+    setNodes(prev => {
+      const remaining = prev.filter(n => !idsToRemove.has(n.id));
+      if (remaining.length === 0) setShowModulePicker(true);
+      return remaining;
+    });
+    setEdges(prev => prev.filter(e => !idsToRemove.has(e.from) && !idsToRemove.has(e.to)));
+    setDeleteConfirm(null);
   };
 
   const handleSelectStartModule = (moduleId: string) => {
@@ -795,6 +766,45 @@ const SimulationMapInner = () => {
           GoProd © 2026. Visualize logic, maximize output. Developed by Uniandes. All rights reserved.
         </div>
       </div>
+
+      {/* Delete confirmation modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setDeleteConfirm(null)} />
+          <div className="relative bg-white rounded-xl shadow-2xl p-6 max-w-sm w-full mx-4 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 rounded-full bg-red-100">
+                <Trash2 className="w-5 h-5 text-red-600" />
+              </div>
+              <h3 className="font-bold text-lg text-slate-800">Eliminar nodo</h3>
+            </div>
+            <p className="text-sm text-slate-600 mb-1">
+              ¿Eliminar <span className="font-semibold">"{deleteConfirm.name}"</span>?
+            </p>
+            {deleteConfirm.descendants.length > 0 && (
+              <p className="text-sm text-red-600 font-medium mb-4">
+                También se eliminarán {deleteConfirm.descendants.length} nodo(s) conectado(s).
+              </p>
+            )}
+            {deleteConfirm.descendants.length === 0 && <div className="mb-4" />}
+            <p className="text-xs text-slate-400 mb-5">Esta acción no se puede deshacer.</p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className="px-4 py-2 text-sm font-medium rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 text-sm font-medium rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
