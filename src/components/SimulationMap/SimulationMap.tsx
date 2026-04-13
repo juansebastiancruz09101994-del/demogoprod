@@ -861,7 +861,11 @@ const SimulationMapInner = () => {
 };
 
 export const SimulationMap = () => (
-  <DemoProvider>
-    <SimulationMapInner />
+  <GuideProvider>
+    <DemoProvider>
+      <SimulationMapInner />
+    </DemoProvider>
+  </GuideProvider>
+);
   </DemoProvider>
 );
