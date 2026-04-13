@@ -24,6 +24,7 @@ export interface ModuleDefinition {
   baseFormula: string;
   formulas?: Record<string, string>;
   variables: Variable[];
+  formulaVisual?: Record<string, FormulaStep[]>;
   solve: (vals: Record<string, number>, targetId: string) => number | null;
   suggestions: Suggestion[];
 }
