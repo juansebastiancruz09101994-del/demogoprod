@@ -13,6 +13,7 @@ interface FormulaLayoutProps {
     step: DemoStep;
     accentColor: string;
   } | null;
+  guideHighlightFields?: string[];
 }
 
 export const FormulaLayout = ({
@@ -22,6 +23,7 @@ export const FormulaLayout = ({
   onInputChange,
   onTargetChange,
   demoHighlight,
+  guideHighlightFields,
 }: FormulaLayoutProps) => {
   const variables = definition.variables;
   const formulaVisual = definition.formulaVisual;
