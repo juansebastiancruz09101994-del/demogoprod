@@ -36,7 +36,7 @@ export const Node = ({
   const [showFormula, setShowFormula] = useState(false);
   
   const [targetId, setTargetId] = useState<string | null>(
-    definition.isInputNode ? null : definition.variables[0].id
+    definition.variables.length === 1 ? null : definition.variables[0].id
   );
 
   const currentFormula = (targetId && definition.formulas && definition.formulas[targetId]) 
@@ -148,7 +148,7 @@ export const Node = ({
                 </div>
               )}
               <div className="flex flex-col gap-1">
-                {!definition.isInputNode && (
+                {definition.variables.length > 1 && (
                   <button 
                     onClick={() => handleTargetChange(v.id)}
                     className={`p-1 rounded transition-colors ${isTarget ? 'text-blue-600 bg-blue-50' : 'text-slate-400 hover:text-slate-600'}`}
@@ -157,7 +157,7 @@ export const Node = ({
                     {isTarget ? <Lock className="w-3 h-3" /> : <div className="w-3 h-3 rounded-full border border-current" />}
                   </button>
                 )}
-                {definition.isInputNode && (
+                {definition.variables.length === 1 && (
                    <div className="w-5 flex justify-center text-slate-300">
                       <div className="w-1.5 h-1.5 rounded-full bg-slate-200" />
                    </div>

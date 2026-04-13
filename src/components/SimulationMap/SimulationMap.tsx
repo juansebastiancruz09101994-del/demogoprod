@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Layers, X, Move, Maximize, ZoomIn, ZoomOut, Trash2, Download, MessageSquare, GraduationCap } from "lucide-react";
+import { Layers, X, Move, Maximize, ZoomIn, ZoomOut, Trash2, Download, MessageSquare, GraduationCap, PlayCircle, Package, Activity, DollarSign, TrendingUp } from "lucide-react";
 import { FeedbackModal } from "./FeedbackModal";
 import { exportStrategyPDF } from "./ExportPDF";
 import { Node } from "./Node";
@@ -8,6 +8,16 @@ import { ReportPanel } from "./ReportPanel";
 import { MODULES } from "./modules";
 import { NodeData, Edge, ReportData } from "./types";
 import { DemoProvider, useDemo, ScenarioCards, DemoOverlay, DEMO_SCENARIOS } from "./DemoMode";
+
+const STARTER_MODULES = [
+  { id: 'production_target', title: 'Plan de Producción', icon: <PlayCircle className="w-5 h-5" />, color: 'bg-emerald-500', category: 'Start' },
+  { id: 'material_needs', title: 'Req. Materia Prima', icon: <Package className="w-5 h-5" />, color: 'bg-blue-500', category: 'Production' },
+  { id: 'labor_needs', title: 'Req. Mano de Obra', icon: <Activity className="w-5 h-5" />, color: 'bg-indigo-500', category: 'Production' },
+  { id: 'cost_material', title: 'Costo Material', icon: <DollarSign className="w-5 h-5" />, color: 'bg-teal-600', category: 'Finance' },
+  { id: 'cost_labor', title: 'Costo Mano de Obra', icon: <DollarSign className="w-5 h-5" />, color: 'bg-teal-600', category: 'Finance' },
+  { id: 'total_cost', title: 'Costo Total Prod.', icon: <DollarSign className="w-5 h-5" />, color: 'bg-slate-700', category: 'Finance' },
+  { id: 'unit_cost', title: 'Costo Unitario', icon: <TrendingUp className="w-5 h-5" />, color: 'bg-red-600', category: 'Finance' },
+];
 
 const DEFAULT_NODES: NodeData[] = [
   { id: "root", type: "production_target", x: 0, y: 0, data: { target: 280000 } },
