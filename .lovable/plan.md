@@ -1,125 +1,107 @@
 
 
-## Nodos con layout visual de ecuación
+## Asistente guía para el modo real (no-demo)
 
-### Idea en términos simples
+### Concepto
 
-En vez de mostrar los campos como una lista plana, el nodo se convierte en una **ecuación visual**:
+Un asistente ligero que observa el estado del canvas en tiempo real y genera pistas dinámicas. A diferencia del modo demo (pasos fijos), este asistente se adapta a lo que el estudiante decida hacer.
+
+**Lógica central**: En cualquier momento, el asistente identifica el "nodo activo" (el más reciente o seleccionado) y determina qué necesita atención:
+1. Si tiene campos vacíos (valor = 0) → pulso azul en esos campos + mensaje indicando dónde encontrar el dato
+2. Si todos los campos están llenos → pulso verde en las sugerencias disponibles + mensaje tipo "¿Qué quieres calcular ahora?"
+3. Si no hay nodos → no se muestra nada
+
+### Representacion visual
 
 ```text
-┌─────────────────────────────┐
-│  Req. Mano de Obra          │
-├─────────────────────────────┤
-│                             │
-│  Producción Objetivo   uds  │
-│  ┌─────────────────┐       │
-│  │          215000  │       │
-│  └─────────────────┘       │
-│           ×                 │
-│  Tasa Mano de Obra  hrs/ud  │
-│  ┌─────────────────┐       │
-│  │            4.36  │       │
-│  └─────────────────┘       │
-│          ═══                │
-│  Total Horas        hrs     │
-│  ┌─────────────────┐       │
-│  │  🔒     937400  │ verde │
-│  └─────────────────┘       │
-│                             │
-│  SUGERENCIAS ...            │
-└─────────────────────────────┘
+Estado A: Nodo con campos vacíos
+┌──────────────────────────────┐
+│  Req. Materia Prima          │
+├──────────────────────────────┤
+│  Producción Objetivo  815000 │  ← ya tiene valor (propagado)
+│           ×                  │
+│  ● Tasa de Uso         [ 0 ]│  ← pulso azul aquí
+│          ═══                 │
+│  🔒 Total MP            [ 0]│
+└──────────────────────────────┘
+
+  ┌─ 💡 Asistente ──────────────────────┐
+  │ Busca la "Tasa de Uso de MP" en el  │
+  │ panel de reporte (sección Producción)│
+  │                          [Entendido] │
+  └──────────────────────────────────────┘
+
+Estado B: Nodo completo
+┌──────────────────────────────┐
+│  Req. Materia Prima          │
+│  ...todos los campos llenos  │
+│  ● Calcular Costo Material   │  ← pulso verde
+│  ● Ver Valor Inventario      │  ← pulso verde
+└──────────────────────────────┘
+
+  ┌─ 💡 Asistente ──────────────────────┐
+  │ ¡Bien! Ahora puedes expandir tu     │
+  │ análisis. ¿Qué quieres calcular?    │
+  │                          [Entendido] │
+  └──────────────────────────────────────┘
 ```
 
-- Los **operandos** (inputs manuales) van arriba, separados por el **símbolo de la operación** (×, +, −, ÷)
-- El **resultado** (variable bloqueada) va abajo, después de una línea `=`, con fondo verde
-- Si el estudiante cambia el candado a otra variable, esa variable baja y las demás suben — el layout se reorganiza automáticamente
+### Arquitectura
 
-### Estructura de datos: `formulaVisual`
+1. **`GuideContext.tsx`** — Nuevo contexto (separado del DemoContext) con:
+   - `isGuideActive: boolean` — toggle on/off
+   - `activeNodeId: string | null` — nodo que el asistente observa (= `selectedNodeId`)
+   - `guideMessage: string | null` — mensaje actual
+   - `highlightFields: string[]` — IDs de variables vacías a pulsar en azul
+   - `highlightSuggestions: boolean` — si pulsar las sugerencias en verde
+   - Función `computeGuidance(node, reportData)` que analiza el nodo y genera las pistas
 
-Cada módulo define, para cada posible `targetId`, el orden visual de los operandos y los operadores entre ellos:
+2. **`guideHints.ts`** — Mapa de hints por variable de cada módulo, indicando dónde encontrar el dato en el reporte. Ejemplo:
+   ```typescript
+   {
+     material_needs: {
+       rate: "Busca la 'Tasa de Uso de MP' en el panel de reporte, sección Producción.",
+       target: "Este valor viene del nodo padre (Plan de Producción).",
+     },
+     labor_needs: {
+       rate: "Busca la 'Tasa de Mano de Obra' en el panel de reporte.",
+     },
+     // ...
+   }
+   ```
 
-```typescript
-type FormulaStep =
-  | { type: 'var'; id: string }
-  | { type: 'op'; symbol: '×' | '+' | '−' | '÷' }
-  | { type: 'group'; label: string; steps: FormulaStep[] }  // para paréntesis
+3. **`GuideOverlay.tsx`** — Banner flotante (similar al DemoOverlay pero más sutil), en la parte inferior. Muestra el mensaje actual y un botón "Entendido"/"Siguiente". Se puede ocultar/minimizar.
 
-// En ModuleDefinition:
-formulaVisual?: Record<string, FormulaStep[]>;
-```
+4. **Modificaciones en `Node.tsx` / `FormulaLayout.tsx`** — Reutilizar el componente `GuidePulse` existente:
+   - Si `isGuideActive` y el nodo es el activo, campos vacíos reciben pulso azul
+   - Sugerencias reciben pulso verde cuando todos los campos están llenos
+   - Esto reutiliza la misma prop `demoHighlight` pero con una fuente diferente
 
-Ejemplo para `material_needs`:
-```typescript
-formulaVisual: {
-  total_mp: [
-    { type: 'var', id: 'target' },
-    { type: 'op', symbol: '×' },
-    { type: 'var', id: 'rate' },
-  ],
-  target: [
-    { type: 'var', id: 'total_mp' },
-    { type: 'op', symbol: '÷' },
-    { type: 'var', id: 'rate' },
-  ],
-  rate: [
-    { type: 'var', id: 'total_mp' },
-    { type: 'op', symbol: '÷' },
-    { type: 'var', id: 'target' },
-  ],
-}
-```
+5. **Modificaciones en `SimulationMap.tsx`**:
+   - Wrappear con `GuideProvider`
+   - Calcular la guía cada vez que cambie `selectedNodeId` o `nodes`
+   - Pasar highlights al componente `Node` (reutilizando `demoHighlight` o una nueva prop `guideHighlight`)
+   - Botón toggle en la barra de controles para activar/desactivar el asistente
 
-Ejemplo para `total_cost` (suma):
-```typescript
-formulaVisual: {
-  total: [
-    { type: 'var', id: 'mat_cost' },
-    { type: 'op', symbol: '+' },
-    { type: 'var', id: 'lab_cost' },
-    { type: 'op', symbol: '+' },
-    { type: 'var', id: 'fix_cost' },
-    { type: 'op', symbol: '+' },
-    { type: 'var', id: 'disc_cost' },
-  ],
-  // ...inversas con − 
-}
-```
+### Interaccion con el modo demo
 
-Ejemplo para `hiring` (paréntesis):
-```typescript
-formulaVisual: {
-  hires: [
-    { type: 'group', label: '', steps: [
-      { type: 'var', id: 'required' },
-      { type: 'op', symbol: '−' },
-      { type: 'var', id: 'current' },
-    ]},
-    { type: 'op', symbol: '× 2' },
-  ],
-}
-```
+- Cuando el modo demo está activo, el asistente guía se desactiva automáticamente (el demo tiene prioridad)
+- Son mutuamente excluyentes
 
-### Cambio en Node.tsx
+### Archivos a crear/modificar
 
-El rendering actual (loop `definition.variables.map(...)`) se reemplaza por:
+1. **Crear** `src/components/SimulationMap/Guide/GuideContext.tsx` — contexto y lógica
+2. **Crear** `src/components/SimulationMap/Guide/guideHints.ts` — hints por módulo/variable
+3. **Crear** `src/components/SimulationMap/Guide/GuideOverlay.tsx` — banner flotante
+4. **Crear** `src/components/SimulationMap/Guide/index.ts` — exports
+5. **Modificar** `src/components/SimulationMap/Node.tsx` — aceptar `guideHighlight` prop
+6. **Modificar** `src/components/SimulationMap/FormulaLayout.tsx` — renderizar pulsos azules/verdes del guide
+7. **Modificar** `src/components/SimulationMap/SimulationMap.tsx` — integrar GuideProvider, calcular highlights, agregar toggle
 
-1. Si `formulaVisual` existe y hay un `targetId`: renderizar los steps del array como operandos + operadores, y al final el `targetId` como resultado en verde
-2. Si no hay `formulaVisual` (ej. `production_target` con 1 sola variable): renderizar como hoy
-3. Cada `var` step se renderiza como su input field (con label, unit, tooltip, radio button para cambiar el lock)
-4. Cada `op` step se renderiza como un símbolo centrado (×, +, etc.) con tipografía grande
-5. La separación `=` es una línea horizontal con el símbolo `=`
-6. El resultado usa `bg-emerald-50 border-emerald-300 text-emerald-700`
+### Detalles técnicos
 
-### Archivos a modificar
-
-1. **`types.ts`** — Agregar tipo `FormulaStep` y campo `formulaVisual` a `ModuleDefinition`
-2. **`modules.tsx`** — Agregar `formulaVisual` a los 12 módulos (cada uno con sus variantes por targetId)
-3. **`Node.tsx`** — Nuevo layout: renderizar operandos → operador → resultado; radio buttons para cambiar lock; resultado en verde abajo
-
-### Consideraciones
-
-- El selector de lock (radio/candado) se mantiene en cada variable para que el estudiante pueda cambiar qué se calcula
-- La fórmula textual (`showFormula` toggle) se puede eliminar o mantener como referencia secundaria
-- Módulos de 1 variable (`production_target`) no cambian — se renderizan como input simple
-- `inventory_val` tiene una fórmula compleja `(init - used) × old + new × new_price` — se modela con `group`
+- `computeGuidance` prioriza: primero campos propagados pero vacíos, luego campos manuales vacíos, luego sugerencias
+- El hint del primer campo vacío se muestra como mensaje; si hay varios vacíos, se mencionan todos
+- El asistente se activa por defecto para nuevos usuarios y se puede desactivar con un toggle (icono de bombilla en la barra inferior)
+- Estado persistido en `localStorage` (`goprod_guide_active`)
 
