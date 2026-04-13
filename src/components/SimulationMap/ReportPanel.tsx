@@ -218,11 +218,11 @@ export const ReportPanel = ({ reportData, onReportLoaded, onReportCleared, demoH
                   <span className="font-semibold text-blue-900">{formatNumber(reportData.plantCapacity)}</span>
                 </div>
                 <div className="flex justify-between hover:bg-blue-100/50 rounded-lg px-2 py-1 -mx-2 transition-colors">
-                  <span className="text-blue-600/80">Tasa MP</span>
+                  <span className="text-blue-600/80">Tasa de uso de materia prima</span>
                   <span className="font-semibold text-blue-900">{formatDecimal(reportData.mpRate)}</span>
                 </div>
                 <div className="flex justify-between hover:bg-blue-100/50 rounded-lg px-2 py-1 -mx-2 transition-colors">
-                  <span className="text-blue-600/80">Tasa MO</span>
+                  <span className="text-blue-600/80">Tasa de uso de mano de obra</span>
                   <span className="font-semibold text-blue-900">{formatDecimal(reportData.laborRate)}</span>
                 </div>
                 <div className="flex justify-between hover:bg-blue-100/50 rounded-lg px-2 py-1 -mx-2 transition-colors">
