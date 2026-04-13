@@ -1,107 +1,36 @@
 
 
-## Asistente guía para el modo real (no-demo)
+## Fix suggestion highlights and make guide messages specific
 
-### Concepto
+### Problem 1: Zoom effect on suggestions
+The `animate-demo-pulse` animation scales elements to 1.5x (`scale(1.5)`), causing suggestion buttons to overflow outside the node.
 
-Un asistente ligero que observa el estado del canvas en tiempo real y genera pistas dinámicas. A diferencia del modo demo (pasos fijos), este asistente se adapta a lo que el estudiante decida hacer.
+**Fix**: Remove `animate-demo-pulse` from guide-highlighted suggestions. The green ring + background is sufficient visual cue. Only keep the `GuidePulse` dot.
 
-**Lógica central**: En cualquier momento, el asistente identifica el "nodo activo" (el más reciente o seleccionado) y determina qué necesita atención:
-1. Si tiene campos vacíos (valor = 0) → pulso azul en esos campos + mensaje indicando dónde encontrar el dato
-2. Si todos los campos están llenos → pulso verde en las sugerencias disponibles + mensaje tipo "¿Qué quieres calcular ahora?"
-3. Si no hay nodos → no se muestra nada
+### Problem 2: Generic completion messages
+Currently when all fields are filled, the guide says something like "¡Horas calculadas! Determina cuántos trabajadores necesitas." — too vague. It should list the available suggestions with a brief note about what data each one needs.
 
-### Representacion visual
+**Fix**: Instead of a static `COMPLETION_MESSAGES` string, dynamically build the message from the node's actual suggestions. Add a new map `SUGGESTION_HINTS` that describes what each suggestion module needs:
 
-```text
-Estado A: Nodo con campos vacíos
-┌──────────────────────────────┐
-│  Req. Materia Prima          │
-├──────────────────────────────┤
-│  Producción Objetivo  815000 │  ← ya tiene valor (propagado)
-│           ×                  │
-│  ● Tasa de Uso         [ 0 ]│  ← pulso azul aquí
-│          ═══                 │
-│  🔒 Total MP            [ 0]│
-└──────────────────────────────┘
-
-  ┌─ 💡 Asistente ──────────────────────┐
-  │ Busca la "Tasa de Uso de MP" en el  │
-  │ panel de reporte (sección Producción)│
-  │                          [Entendido] │
-  └──────────────────────────────────────┘
-
-Estado B: Nodo completo
-┌──────────────────────────────┐
-│  Req. Materia Prima          │
-│  ...todos los campos llenos  │
-│  ● Calcular Costo Material   │  ← pulso verde
-│  ● Ver Valor Inventario      │  ← pulso verde
-└──────────────────────────────┘
-
-  ┌─ 💡 Asistente ──────────────────────┐
-  │ ¡Bien! Ahora puedes expandir tu     │
-  │ análisis. ¿Qué quieres calcular?    │
-  │                          [Entendido] │
-  └──────────────────────────────────────┘
+```
+material_needs: "Necesitarás la Tasa de Uso de MP (panel de reporte, sección Producción)."
+labor_needs: "Necesitarás la Tasa de Mano de Obra (panel de reporte)."
+workforce: "Necesitarás las Horas por Trabajador (~500 hrs/trimestre)."
+...
 ```
 
-### Arquitectura
+The completion message becomes:
+```
+¡Cálculo completo! ¿Qué quieres calcular ahora?
 
-1. **`GuideContext.tsx`** — Nuevo contexto (separado del DemoContext) con:
-   - `isGuideActive: boolean` — toggle on/off
-   - `activeNodeId: string | null` — nodo que el asistente observa (= `selectedNodeId`)
-   - `guideMessage: string | null` — mensaje actual
-   - `highlightFields: string[]` — IDs de variables vacías a pulsar en azul
-   - `highlightSuggestions: boolean` — si pulsar las sugerencias en verde
-   - Función `computeGuidance(node, reportData)` que analiza el nodo y genera las pistas
+• Calcular Fuerza Laboral → Necesitarás las Horas por Trabajador (~500 hrs/trimestre).
+• Calcular Costo Mano de Obra → Necesitarás el Salario por Hora.
+```
 
-2. **`guideHints.ts`** — Mapa de hints por variable de cada módulo, indicando dónde encontrar el dato en el reporte. Ejemplo:
-   ```typescript
-   {
-     material_needs: {
-       rate: "Busca la 'Tasa de Uso de MP' en el panel de reporte, sección Producción.",
-       target: "Este valor viene del nodo padre (Plan de Producción).",
-     },
-     labor_needs: {
-       rate: "Busca la 'Tasa de Mano de Obra' en el panel de reporte.",
-     },
-     // ...
-   }
-   ```
+### Files to modify
 
-3. **`GuideOverlay.tsx`** — Banner flotante (similar al DemoOverlay pero más sutil), en la parte inferior. Muestra el mensaje actual y un botón "Entendido"/"Siguiente". Se puede ocultar/minimizar.
-
-4. **Modificaciones en `Node.tsx` / `FormulaLayout.tsx`** — Reutilizar el componente `GuidePulse` existente:
-   - Si `isGuideActive` y el nodo es el activo, campos vacíos reciben pulso azul
-   - Sugerencias reciben pulso verde cuando todos los campos están llenos
-   - Esto reutiliza la misma prop `demoHighlight` pero con una fuente diferente
-
-5. **Modificaciones en `SimulationMap.tsx`**:
-   - Wrappear con `GuideProvider`
-   - Calcular la guía cada vez que cambie `selectedNodeId` o `nodes`
-   - Pasar highlights al componente `Node` (reutilizando `demoHighlight` o una nueva prop `guideHighlight`)
-   - Botón toggle en la barra de controles para activar/desactivar el asistente
-
-### Interaccion con el modo demo
-
-- Cuando el modo demo está activo, el asistente guía se desactiva automáticamente (el demo tiene prioridad)
-- Son mutuamente excluyentes
-
-### Archivos a crear/modificar
-
-1. **Crear** `src/components/SimulationMap/Guide/GuideContext.tsx` — contexto y lógica
-2. **Crear** `src/components/SimulationMap/Guide/guideHints.ts` — hints por módulo/variable
-3. **Crear** `src/components/SimulationMap/Guide/GuideOverlay.tsx` — banner flotante
-4. **Crear** `src/components/SimulationMap/Guide/index.ts` — exports
-5. **Modificar** `src/components/SimulationMap/Node.tsx` — aceptar `guideHighlight` prop
-6. **Modificar** `src/components/SimulationMap/FormulaLayout.tsx` — renderizar pulsos azules/verdes del guide
-7. **Modificar** `src/components/SimulationMap/SimulationMap.tsx` — integrar GuideProvider, calcular highlights, agregar toggle
-
-### Detalles técnicos
-
-- `computeGuidance` prioriza: primero campos propagados pero vacíos, luego campos manuales vacíos, luego sugerencias
-- El hint del primer campo vacío se muestra como mensaje; si hay varios vacíos, se mencionan todos
-- El asistente se activa por defecto para nuevos usuarios y se puede desactivar con un toggle (icono de bombilla en la barra inferior)
-- Estado persistido en `localStorage` (`goprod_guide_active`)
+1. **`tailwind.config.ts`** — No change needed (animation stays for demo mode)
+2. **`src/components/SimulationMap/Node.tsx`** — Remove `animate-demo-pulse` class from guide-highlighted suggestions (keep it for demo highlights only)
+3. **`src/components/SimulationMap/Guide/guideHints.ts`** — Add `SUGGESTION_HINTS` map; remove static `COMPLETION_MESSAGES`
+4. **`src/components/SimulationMap/Guide/GuideContext.tsx`** — In the "all fields filled" branch, dynamically build the message using the node's `suggestions` array + `SUGGESTION_HINTS`
 
