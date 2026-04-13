@@ -1,76 +1,52 @@
 
 
-## Punto de partida flexible: cualquier módulo como raíz
+## Propagacion de valores entre nodos conectados
 
-### Análisis del sistema actual
+### Problema actual
+Cuando un estudiante cambia un valor en un nodo padre, los nodos hijos no se actualizan. Esto ocurre porque:
+1. El `Edge` solo almacena `{from, to}` — no guarda QUE variables estan conectadas
+2. `handleNodeUpdate` solo actualiza el nodo editado, sin recorrer el grafo
+3. El `varMap` de cada sugerencia solo se usa al momento de crear el nodo hijo, pero no se persiste
 
-Actualmente el canvas siempre inicia con un nodo `production_target` hardcodeado como `DEFAULT_NODES`. Las sugerencias (botones "+") solo fluyen "hacia abajo":
+### Solucion
 
-```text
-production_target
-├── material_needs → inventory_val, cost_material → total_cost → unit_cost
-├── labor_needs → workforce → hiring, cost_labor → total_cost
-└── packaging → cost_packaging → total_cost
+#### 1. Extender el tipo `Edge` para almacenar el mapeo de variables
+
+```
+interface Edge {
+  from: string;
+  to: string;
+  varMap: Record<string, string>; // { childVar: parentVar }
+}
 ```
 
-Cada módulo ya tiene funciones `solve` bidireccionales (puede resolver cualquier variable dados los demás). Lo que falta son **sugerencias inversas** y una **UI de selección de módulo inicial**.
+Esto permite saber que, por ejemplo, el campo `target` del nodo hijo `material_needs` viene del campo `target` del nodo padre `production_target`.
 
-### Análisis matemático de las fórmulas bidireccionales
+#### 2. Funcion de propagacion en cascada
 
-Todas las fórmulas ya son invertibles:
+Al actualizar un nodo, recorrer todas las aristas salientes, copiar los valores mapeados al nodo hijo, re-ejecutar su `solve`, y continuar recursivamente con los hijos de ese hijo (BFS o DFS con proteccion anti-ciclos).
 
-| Módulo | Forward | Reverse |
-|--------|---------|---------|
-| `material_needs` | target × rate = total_mp | target = total_mp / rate |
-| `labor_needs` | target × rate = total_hours | target = total_hours / rate |
-| `workforce` | needed_hours / hrs_per_worker = workers | needed_hours = workers × hrs_per_worker |
-| `cost_material` | units × price = cost | units = cost / price |
-| `cost_labor` | workers × wage × hours = cost | workers = cost / (wage × hours) |
-| `unit_cost` | total_cost / units = u_cost | total_cost = u_cost × units |
+```text
+Usuario cambia "target" en production_target
+  → Edge dice: material_needs.target = production_target.target
+    → Copiar valor, re-solve material_needs
+      → Edge dice: cost_material.units = material_needs.total_mp
+        → Copiar valor, re-solve cost_material
+          → ... y asi sucesivamente
+```
 
-Esto significa que si un estudiante empieza por `cost_material` (sabe cuánto quiere gastar en MP), puede derivar cuántas unidades de MP necesita, y de ahí cuántas unidades producir. El grafo se construye en reversa pero las matemáticas funcionan igual.
+#### 3. Guardar varMap al crear aristas
 
-### Cambios propuestos
-
-#### 1. UI: Selector de módulo inicial (reemplaza el nodo root fijo)
-
-En lugar de arrancar siempre con `production_target`, al iniciar un canvas vacío (o al resetear), mostrar un **picker de módulos** donde el estudiante elige desde dónde quiere empezar. Se mostrará como un panel flotante en el centro del canvas con los módulos agrupados por categoría.
-
-**Módulos disponibles como punto de partida** (todos los existentes excepto `inventory_val` que es un nodo auxiliar):
-- Plan de Producción
-- Req. Materia Prima
-- Req. Mano de Obra
-- Costo Material
-- Costo Mano de Obra
-- Costo Total Prod.
-- Costo Unitario
-
-#### 2. Sugerencias bidireccionales en cada módulo
-
-Agregar sugerencias "inversas" a cada módulo para que pueda derivar nodos tanto downstream como upstream:
-
-- **`material_needs`**: agregar → `production_target` ("Definir Producción Objetivo", map: `{target: 'target'}`)
-- **`labor_needs`**: agregar → `production_target` ("Definir Producción Objetivo", map: `{target: 'target'}`)
-- **`cost_material`**: agregar → `material_needs` ("Calcular Req. MP", map: `{total_mp: 'units'}`)
-- **`cost_labor`**: agregar → `labor_needs` ("Calcular Req. MO", map: `{}`) y → `workforce` ("Calcular Fuerza Laboral", map: `{workers_req: 'workers'}`)
-- **`total_cost`**: agregar → `cost_material`, `cost_labor`, `cost_packaging` (crear nodos de costo individual)
-- **`unit_cost`**: agregar → `total_cost` ("Desglosar Costo Total", map: `{total: 'total_cost'}`)
-
-#### 3. Eliminar restricción `isInputNode` como condición exclusiva
-
-Cualquier módulo puede ser nodo raíz. Se elimina `DEFAULT_NODES` como constante fija y se reemplaza por un estado que depende de la selección del usuario.
-
-#### 4. Lógica anti-duplicados
-
-Antes de crear un nodo vía sugerencia, verificar que no exista ya un nodo del mismo tipo en el canvas. Si ya existe, conectar una arista al existente en lugar de crear uno nuevo (evita duplicados de `production_target`, etc.).
+Modificar `handleAddChild` para incluir el `varMap` en la arista. Para aristas creadas por anti-duplicado, inferir el varMap de la sugerencia que lo origino.
 
 ### Archivos a modificar
 
-1. **`src/components/SimulationMap/modules.tsx`** — Agregar sugerencias inversas a cada módulo; remover `isInputNode` de `production_target` (o hacerlo universal)
-2. **`src/components/SimulationMap/SimulationMap.tsx`** — Reemplazar `DEFAULT_NODES` por un estado dinámico; agregar componente `ModulePicker`; lógica anti-duplicados en `handleAddChild`
-3. **`src/components/SimulationMap/Node.tsx`** — Ajustar rendering para que cualquier nodo pueda ser "input" (sin candado de solve) si el usuario lo desea
+1. **`src/components/SimulationMap/types.ts`** — Agregar `varMap` al tipo `Edge`
+2. **`src/components/SimulationMap/SimulationMap.tsx`** — Guardar varMap en aristas; implementar `propagateValues` recursivo en `handleNodeUpdate`; actualizar anti-duplicado para incluir varMap
+3. **`src/components/SimulationMap/Node.tsx`** — Sin cambios (ya llama `onUpdate` correctamente)
 
-### Nota sobre el Modo Demo
-
-El modo demo seguirá funcionando igual ya que fuerza un flujo específico con pasos predefinidos. Los escenarios del demo no se modifican.
+### Consideraciones
+- Proteccion anti-ciclos: usar un `Set<string>` de nodos ya visitados durante la propagacion
+- La propagacion solo fluye en direccion `from → to` de cada arista
+- El `solve` del nodo hijo se ejecuta con su `targetId` actual para recalcular el campo derivado
 
