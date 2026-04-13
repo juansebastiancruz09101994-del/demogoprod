@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { toast } from "sonner";
 import { Layers, X, Move, Maximize, ZoomIn, ZoomOut, Trash2, Download, MessageSquare, GraduationCap, PlayCircle, Package, Activity, DollarSign, TrendingUp } from "lucide-react";
 import { FeedbackModal } from "./FeedbackModal";
 import { exportStrategyPDF } from "./ExportPDF";
@@ -451,13 +452,73 @@ const SimulationMapInner = () => {
     }
   };
 
+  const getDescendants = useCallback((nodeId: string, currentEdges: Edge[]): string[] => {
+    const descendants: string[] = [];
+    const queue = [nodeId];
+    const visited = new Set<string>();
+    while (queue.length > 0) {
+      const current = queue.shift()!;
+      if (visited.has(current)) continue;
+      visited.add(current);
+      const children = currentEdges.filter(e => e.from === current).map(e => e.to);
+      for (const child of children) {
+        if (!visited.has(child)) {
+          descendants.push(child);
+          queue.push(child);
+        }
+      }
+    }
+    return descendants;
+  }, []);
+
   const handleDelete = (id: string) => {
-    setNodes((prev) => {
-      const remaining = prev.filter((n) => n.id !== id);
-      if (remaining.length === 0) setShowModulePicker(true);
-      return remaining;
-    });
-    setEdges((prev) => prev.filter((e) => e.from !== id && e.to !== id));
+    const descendants = getDescendants(id, edges);
+    const totalToDelete = descendants.length + 1;
+    const nodeDef = MODULES[nodes.find(n => n.id === id)?.type || ''];
+    const nodeName = nodeDef?.title || 'este nodo';
+
+    if (totalToDelete > 1) {
+      toast(`¿Eliminar "${nodeName}" y ${descendants.length} nodo(s) conectado(s)?`, {
+        description: 'Esta acción no se puede deshacer.',
+        action: {
+          label: 'Eliminar',
+          onClick: () => {
+            const idsToRemove = new Set([id, ...descendants]);
+            setNodes(prev => {
+              const remaining = prev.filter(n => !idsToRemove.has(n.id));
+              if (remaining.length === 0) setShowModulePicker(true);
+              return remaining;
+            });
+            setEdges(prev => prev.filter(e => !idsToRemove.has(e.from) && !idsToRemove.has(e.to)));
+            toast.success(`${totalToDelete} nodo(s) eliminados`);
+          },
+        },
+        cancel: {
+          label: 'Cancelar',
+          onClick: () => {},
+        },
+      });
+    } else {
+      toast(`¿Eliminar "${nodeName}"?`, {
+        description: 'Esta acción no se puede deshacer.',
+        action: {
+          label: 'Eliminar',
+          onClick: () => {
+            setNodes(prev => {
+              const remaining = prev.filter(n => n.id !== id);
+              if (remaining.length === 0) setShowModulePicker(true);
+              return remaining;
+            });
+            setEdges(prev => prev.filter(e => e.from !== id && e.to !== id));
+            toast.success('Nodo eliminado');
+          },
+        },
+        cancel: {
+          label: 'Cancelar',
+          onClick: () => {},
+        },
+      });
+    }
   };
 
   const handleSelectStartModule = (moduleId: string) => {
