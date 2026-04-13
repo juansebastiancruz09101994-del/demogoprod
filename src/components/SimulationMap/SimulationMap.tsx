@@ -27,8 +27,15 @@ const SimulationMapInner = () => {
   const [nodes, setNodes] = useState<NodeData[]>(() => {
     try {
       const saved = localStorage.getItem('goprod_nodes');
-      return saved ? JSON.parse(saved) : DEFAULT_NODES;
-    } catch { return DEFAULT_NODES; }
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  const [showModulePicker, setShowModulePicker] = useState(() => {
+    try {
+      const saved = localStorage.getItem('goprod_nodes');
+      const parsed = saved ? JSON.parse(saved) : [];
+      return parsed.length === 0;
+    } catch { return true; }
   });
   const [edges, setEdges] = useState<Edge[]>(() => {
     try {
