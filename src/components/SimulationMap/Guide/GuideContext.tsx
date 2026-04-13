@@ -92,8 +92,7 @@ export const GuideProvider = ({ children }: { children: ReactNode }) => {
       if (emptyVars.length === 1) {
         setGuideMessage(hint);
       } else {
-        const otherNames = emptyVars.slice(1).map(v => `"${v.label}"`).join(', ');
-        setGuideMessage(`${hint}\n\nTambién necesitas completar: ${otherNames}.`);
+        setGuideMessage(`${hint}\n\nCompleta los campos marcados en azul para obtener tu resultado.`);
       }
     } else {
       // State B: all fields filled
