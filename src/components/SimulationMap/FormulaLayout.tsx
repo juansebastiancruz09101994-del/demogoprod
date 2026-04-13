@@ -127,6 +127,7 @@ const StepRenderer = ({
   onInputChange,
   onTargetChange,
   demoHighlight,
+  guideHighlightFields,
   nested = false,
 }: {
   step: FormulaStep;
@@ -136,6 +137,7 @@ const StepRenderer = ({
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>, varId: string) => void;
   onTargetChange: (newTarget: string) => void;
   demoHighlight?: { step: DemoStep; accentColor: string } | null;
+  guideHighlightFields?: string[];
   nested?: boolean;
 }) => {
   if (step.type === 'op') {
@@ -160,6 +162,7 @@ const StepRenderer = ({
         onChange={onInputChange}
         onTargetChange={onTargetChange}
         demoHighlight={demoHighlight}
+        guideHighlightFields={guideHighlightFields}
         compact={nested}
       />
     );
@@ -181,6 +184,7 @@ const StepRenderer = ({
             onInputChange={onInputChange}
             onTargetChange={onTargetChange}
             demoHighlight={demoHighlight}
+            guideHighlightFields={guideHighlightFields}
             nested
           />
         ))}
@@ -200,6 +204,7 @@ const VariableInput = ({
   onChange,
   onTargetChange,
   demoHighlight,
+  guideHighlightFields,
   isResult = false,
   compact = false,
 }: {
@@ -210,12 +215,19 @@ const VariableInput = ({
   onChange: (e: React.ChangeEvent<HTMLInputElement>, varId: string) => void;
   onTargetChange: (newTarget: string) => void;
   demoHighlight?: { step: DemoStep; accentColor: string } | null;
+  guideHighlightFields?: string[];
   isResult?: boolean;
   compact?: boolean;
 }) => {
-  const hasHighlight = demoHighlight
+  const hasDemoHighlight = demoHighlight
     && demoHighlight.step.targetType === 'fill-input'
     && demoHighlight.step.targetVariable === variable.id;
+
+  const hasGuideHighlight = !hasDemoHighlight
+    && guideHighlightFields
+    && guideHighlightFields.includes(variable.id);
+
+  const hasHighlight = hasDemoHighlight || hasGuideHighlight;
 
   return (
     <div className={`flex items-center gap-2 text-sm relative ${hasHighlight ? 'z-20' : ''} ${compact ? 'py-0' : ''}`}>
