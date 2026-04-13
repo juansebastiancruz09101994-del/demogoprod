@@ -1,36 +1,52 @@
 
 
-## Fix suggestion highlights and make guide messages specific
+## GoProd: Asistente gerencial con insights estratégicos
 
-### Problem 1: Zoom effect on suggestions
-The `animate-demo-pulse` animation scales elements to 1.5x (`scale(1.5)`), causing suggestion buttons to overflow outside the node.
+### Cambios principales
 
-**Fix**: Remove `animate-demo-pulse` from guide-highlighted suggestions. The green ring + background is sufficient visual cue. Only keep the `GuidePulse` dot.
+**1. Branding y UI del overlay (`GuideOverlay.tsx`)**
+- Renombrar "Asistente" → "GoProd"
+- Agregar botón X para cerrar (llama `toggleGuide()`)
 
-### Problem 2: Generic completion messages
-Currently when all fields are filled, the guide says something like "¡Horas calculadas! Determina cuántos trabajadores necesitas." — too vague. It should list the available suggestions with a brief note about what data each one needs.
+**2. Reescritura completa de `guideHints.ts`** — tono conversacional + insights gerenciales
 
-**Fix**: Instead of a static `COMPLETION_MESSAGES` string, dynamically build the message from the node's actual suggestions. Add a new map `SUGGESTION_HINTS` that describes what each suggestion module needs:
+El copy actual es técnico y obvio ("este valor se propaga desde...", "también necesitas completar X"). El nuevo copy será conversacional (GoProd habla como un asesor gerencial) y aportará valor real con insights del documento.
 
-```
-material_needs: "Necesitarás la Tasa de Uso de MP (panel de reporte, sección Producción)."
-labor_needs: "Necesitarás la Tasa de Mano de Obra (panel de reporte)."
-workforce: "Necesitarás las Horas por Trabajador (~500 hrs/trimestre)."
-...
-```
+Ejemplos del cambio:
 
-The completion message becomes:
-```
-¡Cálculo completo! ¿Qué quieres calcular ahora?
+| Módulo / Variable | Actual | Nuevo |
+|---|---|---|
+| `material_needs.rate` | "Busca la Tasa de Uso de MP en el panel de reporte" | "¿Cuántas unidades de MP necesitas por producto? El estándar son 4, pero si has invertido en I+D podrías estar más bajo. Revisa tu reporte en la sección Producción. Ojo: fijar un ratio muy bajo sin respaldo en I+D genera escasez y obreros ociosos." |
+| `material_needs.target` | "Este valor se propaga desde el nodo de Plan de Producción." | "Este dato viene de tu Plan de Producción — ya está conectado." |
+| `labor_needs.rate` | "Busca la Tasa de Mano de Obra..." | "¿Cuántas horas necesita cada producto? El estándar son 4 hrs/ud. Encuéntralo en tu reporte, sección Producción. Recuerda: la inversión en I+D puede mejorar esta tasa con el tiempo." |
+| `workforce.hrs_per_worker` | "Busca las Horas por Trabajador..." | "Cada obrero trabaja 500 hrs por trimestre. Pero ojo: los nuevos solo rinden 250 hrs por la curva de aprendizaje. Mantener tu equipo estable es más barato que rotar." |
+| `hiring.current` | "Busca la Fuerza Laboral Actual..." | "¿Cuántos obreros tienes al cierre del periodo anterior? Lo encuentras en tu reporte, sección Mano de Obra. Tip: anticipar contrataciones 1-2 trimestres evita el ciclo costoso de contratación masiva." |
+| `cost_labor.wage` | "Busca el Salario por Hora..." | "El salario por hora lo encuentras en tu reporte. Un salario competitivo reduce renuncias (4-5% normal vs. masivas si pagas muy bajo) y previene huelgas que pueden paralizar hasta 6 semanas de producción." |
+| `total_cost.fix_cost` | "Busca los Costos Fijos..." | "Los costos fijos dependen del tamaño de tu planta: <$3M → $250K, $3-6M → $400K, >$6M → $600K. Producir al 80% de capacidad encarece cada unidad un 25% en fijos vs. producir al 100%." |
+| `total_cost.disc_cost` | "Busca los Gastos Discrecionales..." | "Los gastos discrecionales (bonos, beneficios) no son un gasto — son una inversión en moral. Mejoran productividad, reducen rotación y bajan el riesgo de huelgas. Su efecto no aparece como ingreso, pero sí como menor costo unitario." |
 
-• Calcular Fuerza Laboral → Necesitarás las Horas por Trabajador (~500 hrs/trimestre).
-• Calcular Costo Mano de Obra → Necesitarás el Salario por Hora.
-```
+**3. Mensajes de completado con insights (`SUGGESTION_HINTS`)**
 
-### Files to modify
+En vez de solo decir qué dato necesitará, GoProd dará contexto estratégico:
 
-1. **`tailwind.config.ts`** — No change needed (animation stays for demo mode)
-2. **`src/components/SimulationMap/Node.tsx`** — Remove `animate-demo-pulse` class from guide-highlighted suggestions (keep it for demo highlights only)
-3. **`src/components/SimulationMap/Guide/guideHints.ts`** — Add `SUGGESTION_HINTS` map; remove static `COMPLETION_MESSAGES`
-4. **`src/components/SimulationMap/Guide/GuideContext.tsx`** — In the "all fields filled" branch, dynamically build the message using the node's `suggestions` array + `SUGGESTION_HINTS`
+| Sugerencia | Actual | Nuevo |
+|---|---|---|
+| `workforce` | "Necesitarás las Horas por Trabajador (~500 hrs/trimestre)." | "Dimensiona tu equipo. Recuerda: un nuevo obrero cuesta el doble en su primer trimestre por la curva de aprendizaje." |
+| `cost_material` | "Necesitarás el Precio Promedio Ponderado de MP." | "Conocer tu costo de MP es clave para fijar precios. Las compras de urgencia (+20%) contaminan tu estructura de costos futura." |
+| `hiring` | "Necesitarás la Fuerza Laboral Actual." | "Planifica contrataciones con anticipación. La regla 2x existe porque los nuevos solo rinden 250 hrs de las 500." |
+
+**4. Eliminar la redundancia de "También necesitas completar X, Y"** (`GuideContext.tsx`)
+
+Cuando hay múltiples campos vacíos, en vez de listar los nombres (que el estudiante ya ve), GoProd dará el insight del primer campo vacío y un mensaje genérico tipo "Completa los campos marcados en azul para obtener tu resultado."
+
+**5. `GENERIC_COMPLETION` más conversacional**
+
+Actual: "¡Cálculo completo! ¿Qué quieres calcular ahora?"
+Nuevo: "¡Listo! Ahora puedes profundizar tu análisis. ¿Hacia dónde quieres ir?"
+
+### Archivos a modificar
+
+1. **`src/components/SimulationMap/Guide/GuideOverlay.tsx`** — Renombrar a "GoProd", agregar botón X
+2. **`src/components/SimulationMap/Guide/guideHints.ts`** — Reescritura completa: tono conversacional, insights gerenciales del documento, eliminar "se propaga"
+3. **`src/components/SimulationMap/Guide/GuideContext.tsx`** — Cambiar el mensaje de "También necesitas completar: X, Y" por "Completa los campos marcados en azul para obtener tu resultado."
 
