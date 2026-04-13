@@ -61,16 +61,16 @@ export const GuideOverlay = () => {
   const [dragging, setDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
-  // Reset position when guide deactivates
   useEffect(() => {
     if (!isGuideActive) setPosition(null);
   }, [isGuideActive]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    // Allow clicking the close button
+    if ((e.target as HTMLElement).closest('button')) return;
     e.preventDefault();
     e.stopPropagation();
-    const rect = (e.currentTarget.closest('[data-goprod-overlay]') as HTMLElement)?.getBoundingClientRect();
-    if (!rect) return;
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     setDragging(true);
     setDragOffset({ x: e.clientX - rect.left, y: e.clientY - rect.top });
     if (!position) {
@@ -106,26 +106,20 @@ export const GuideOverlay = () => {
   return (
     <div
       data-goprod-overlay
-      className="fixed z-[55] pointer-events-auto max-w-md w-full px-4"
+      className="fixed z-[55] pointer-events-auto max-w-md w-full px-4 select-none cursor-move"
       style={positionStyle}
-      onMouseDown={(e) => e.stopPropagation()}
+      onMouseDown={handleMouseDown}
       onPointerDown={(e) => e.stopPropagation()}
       onClick={(e) => e.stopPropagation()}
     >
       <div className="group bg-white/40 backdrop-blur-xl hover:bg-white/70 rounded-2xl shadow-xl border border-white/30 overflow-hidden transition-all duration-300">
-        <div
-          className="h-1 bg-blue-100/50 cursor-move select-none"
-          onMouseDown={handleMouseDown}
-        >
+        <div className="h-1 bg-blue-100/50">
           <div className="h-full bg-blue-500/60 w-full rounded-r-full" />
         </div>
 
-        <div className="p-3 max-h-[240px] overflow-y-auto">
+        <div className="p-3">
           <div className="flex items-start gap-2">
-            <div
-              className="p-1.5 rounded-lg bg-blue-50/50 flex-shrink-0 cursor-move select-none"
-              onMouseDown={handleMouseDown}
-            >
+            <div className="p-1.5 rounded-lg bg-blue-50/50 flex-shrink-0">
               <Lightbulb className="w-3.5 h-3.5 text-blue-600/70" />
             </div>
 
@@ -137,8 +131,8 @@ export const GuideOverlay = () => {
             </div>
 
             <button
-              onClick={toggleGuide}
-              className="p-1 rounded-md hover:bg-slate-100/50 transition-colors flex-shrink-0"
+              onClick={(e) => { e.stopPropagation(); toggleGuide(); }}
+              className="p-1 rounded-md hover:bg-slate-100/50 transition-colors flex-shrink-0 cursor-pointer"
               aria-label="Cerrar asistente"
             >
               <X className="w-3.5 h-3.5 text-slate-400/70" />
