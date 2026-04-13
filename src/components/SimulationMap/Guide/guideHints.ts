@@ -68,6 +68,7 @@ export const MODULE_HINTS: Record<string, Record<string, string>> = {
 
 // Hints estratégicos para cada sugerencia de siguiente cálculo
 export const SUGGESTION_HINTS: Record<string, string> = {
+  production_target: 'Define cuántas unidades producir. Alinea este número con tu pronóstico de ventas y capacidad de planta para evitar sobreproducción o quiebres de stock.',
   material_needs: 'Calcula cuánta materia prima necesitas. La tasa de uso depende de tu inversión en I+D — revisa tu reporte.',
   labor_needs: 'Estima las horas de producción. Una tasa alta de hrs/ud puede señalar que necesitas más inversión en eficiencia.',
   workforce: 'Dimensiona tu equipo. Recuerda: un nuevo obrero cuesta el doble en su primer trimestre por la curva de aprendizaje.',
