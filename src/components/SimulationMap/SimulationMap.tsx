@@ -305,8 +305,68 @@ const SimulationMapInner = () => {
     setPan({ x: newPanX, y: newPanY });
   };
 
+  const propagateValues = useCallback((updatedNodes: NodeData[], startNodeId: string, currentEdges: Edge[]) => {
+    const visited = new Set<string>();
+    const queue = [startNodeId];
+    let result = [...updatedNodes];
+
+    while (queue.length > 0) {
+      const nodeId = queue.shift()!;
+      if (visited.has(nodeId)) continue;
+      visited.add(nodeId);
+
+      const parentNode = result.find(n => n.id === nodeId);
+      if (!parentNode) continue;
+
+      const outEdges = currentEdges.filter(e => e.from === nodeId);
+      for (const edge of outEdges) {
+        if (visited.has(edge.to)) continue;
+        const childIdx = result.findIndex(n => n.id === edge.to);
+        if (childIdx === -1) continue;
+
+        const child = result[childIdx];
+        const childMod = MODULES[child.type];
+        if (!childMod) continue;
+
+        let childData = { ...child.data };
+        let changed = false;
+
+        // Copy mapped values from parent to child
+        if (edge.varMap) {
+          Object.entries(edge.varMap).forEach(([childVar, parentVar]) => {
+            const parentVal = parentNode.data[parentVar];
+            if (parentVal !== undefined && childData[childVar] !== parentVal) {
+              childData[childVar] = parentVal;
+              changed = true;
+            }
+          });
+        }
+
+        if (changed) {
+          // Re-solve: find the variable that should be computed (first one with a known value of 0 or the last variable)
+          const vars = childMod.variables;
+          const filledCount = vars.filter(v => childData[v.id] && childData[v.id] !== 0).length;
+          if (filledCount >= vars.length - 1) {
+            const targetVar = vars.find(v => !childData[v.id] || childData[v.id] === 0) || vars[vars.length - 1];
+            const solved = childMod.solve(childData, targetVar.id);
+            if (solved !== null) {
+              childData[targetVar.id] = solved;
+            }
+          }
+
+          result[childIdx] = { ...child, data: childData };
+          queue.push(edge.to);
+        }
+      }
+    }
+    return result;
+  }, []);
+
   const handleNodeUpdate = (id: string, newData: Record<string, number>) => {
-    setNodes((prev) => prev.map((n) => (n.id === id ? { ...n, data: newData } : n)));
+    setNodes((prev) => {
+      const updated = prev.map((n) => (n.id === id ? { ...n, data: newData } : n));
+      return propagateValues(updated, id, edges);
+    });
   };
 
   const handleAddChild = (parentId: string, childType: string, varMap: Record<string, string>) => {
@@ -321,7 +381,7 @@ const SimulationMapInner = () => {
         (e.from === existingNode.id && e.to === parentId)
       );
       if (!edgeExists) {
-        setEdges((prev) => [...prev, { from: parentId, to: existingNode.id }]);
+        setEdges((prev) => [...prev, { from: parentId, to: existingNode.id, varMap }]);
       }
       setSelectedNodeId(existingNode.id);
       // Demo: detect click-suggestion step completion
@@ -376,7 +436,7 @@ const SimulationMapInner = () => {
     };
 
     setNodes((prev) => [...prev, newNode]);
-    setEdges((prev) => [...prev, { from: parentId, to: newId }]);
+    setEdges((prev) => [...prev, { from: parentId, to: newId, varMap }]);
     setSelectedNodeId(newId);
 
     // Demo: detect click-suggestion step completion

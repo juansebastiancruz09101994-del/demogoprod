@@ -39,6 +39,7 @@ export interface NodeData {
 export interface Edge {
   from: string;
   to: string;
+  varMap?: Record<string, string>;
 }
 
 export interface ReportData {
