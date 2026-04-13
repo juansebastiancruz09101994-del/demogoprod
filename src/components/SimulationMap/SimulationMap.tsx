@@ -776,6 +776,7 @@ const SimulationMapInner = () => {
               isSelected={selectedNodeId === node.id}
               onSelect={setSelectedNodeId}
               demoHighlight={getDemoHighlight(node.type)}
+              guideHighlight={getGuideHighlight(node.id)}
             />
           ))}
         </div>
