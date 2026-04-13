@@ -1,29 +1,23 @@
 
 
-## Formato del asistente GoProd: cristal líquido + texto estructurado
+## GoProd overlay: altura variable, draggable, más compacto
 
-### Cambios
+### Problemas actuales
+- Altura fija de 160px corta el texto y el scroll es mala UX
+- Algunos bullets no se parsean bien (falta de `•` al inicio o texto truncado)
+- Ancho demasiado grande (`max-w-xl`) y letra grande para un asistente secundario
 
-**1. Texto estructurado en `GuideOverlay.tsx`**
-- Parsear `guideMessage` para detectar el bloque principal (antes de `\n\n`) y las líneas con `•`
-- Renderizar el bloque principal como párrafo normal
-- Renderizar cada bullet como un elemento con el nombre de la sugerencia en **negrita** y la descripción en texto normal (separados por `→`)
-- Usar `text-xs` para las sugerencias para diferenciarlas del mensaje principal
+### Cambios en `GuideOverlay.tsx`
 
-**2. Efecto cristal líquido en el contenedor**
-- Cambiar `bg-white/95` → `bg-white/40 backdrop-blur-xl` para efecto glassmorphism translúcido
-- En hover: transición a `bg-white/70` (recupera color pero no al 100%)
-- Usar `transition-all duration-300` para suavizar
+**1. Altura variable** — Quitar `h-[160px]` y dejar que el contenedor crezca según el contenido. Agregar `max-h-[240px] overflow-y-auto` como safety net para mensajes extremadamente largos.
 
-**3. Contenedor más ancho y altura fija**
-- Cambiar `max-w-md` → `max-w-xl` para más espacio horizontal
-- Agregar `h-[180px]` fijo al contenedor interior + `overflow-y-auto` para scroll si el contenido excede
-- Esto evita que el asistente crezca y tape el canvas
+**2. Draggable** — Agregar estado local `position` (`{ x, y }`) con `useState`. En el header/icono de GoProd, poner un `onMouseDown` que inicie el drag. Usar `onMouseMove` y `onMouseUp` en `window` (via `useEffect`) para mover el contenedor. Cambiar de `fixed bottom-20 left-1/2 -translate-x-1/2` a `fixed` con `top/left` controlados por estado. Posición inicial: centrado abajo como ahora.
 
-**4. Mensaje estructurado desde `GuideContext.tsx`**
-- Sin cambios en la lógica — el formato `\n\n` y `•` / `→` ya existe; el parsing se hace en el overlay
+**3. Ancho y tipografía** — Volver a `max-w-md`. Reducir texto principal de `text-sm` → `text-xs`. Bullets de `text-xs` → `text-[11px]`. Padding de `p-4` → `p-3`.
+
+**4. Cursor de drag** — Agregar `cursor-move` al header para indicar que es arrastrable.
 
 ### Archivos a modificar
 
-1. **`src/components/SimulationMap/Guide/GuideOverlay.tsx`** — glassmorphism, hover effect, ancho mayor, altura fija, parsing de texto estructurado
+1. **`src/components/SimulationMap/Guide/GuideOverlay.tsx`** — Todo lo anterior
 
