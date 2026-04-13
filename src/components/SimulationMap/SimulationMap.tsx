@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
-import { Layers, X, Move, Maximize, ZoomIn, ZoomOut, Trash2, Download, MessageSquare, GraduationCap, PlayCircle, Package, Activity, DollarSign, TrendingUp } from "lucide-react";
+import { Layers, X, Move, Maximize, ZoomIn, ZoomOut, Trash2, Download, MessageSquare, GraduationCap, PlayCircle, Package, Activity, DollarSign, TrendingUp, Lightbulb } from "lucide-react";
 import { FeedbackModal } from "./FeedbackModal";
 import { exportStrategyPDF } from "./ExportPDF";
 import { Node } from "./Node";
@@ -9,6 +9,7 @@ import { ReportPanel } from "./ReportPanel";
 import { MODULES } from "./modules";
 import { NodeData, Edge, ReportData } from "./types";
 import { DemoProvider, useDemo, ScenarioCards, DemoOverlay, DEMO_SCENARIOS } from "./DemoMode";
+import { GuideProvider, useGuide, GuideOverlay } from "./Guide";
 
 const STARTER_MODULES = [
   { id: 'production_target', title: 'Plan de Producción', icon: <PlayCircle className="w-5 h-5" />, color: 'bg-emerald-500', category: 'Start' },
