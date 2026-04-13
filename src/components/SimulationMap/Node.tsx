@@ -20,6 +20,10 @@ interface NodeProps {
     step: DemoStep;
     accentColor: string;
   } | null;
+  guideHighlight?: {
+    highlightFields: string[];
+    highlightSuggestions: boolean;
+  } | null;
 }
 
 export const Node = ({ 
@@ -33,6 +37,7 @@ export const Node = ({
   isSelected, 
   onSelect,
   demoHighlight,
+  guideHighlight,
 }: NodeProps) => {
   const definition = MODULES[node.type];
   const [inputs, setInputs] = useState<Record<string, number>>(data || {});
