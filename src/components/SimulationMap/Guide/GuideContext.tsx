@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import { NodeData } from '../types';
 import { MODULES } from '../modules';
-import { MODULE_HINTS, COMPLETION_MESSAGES, GENERIC_COMPLETION } from './guideHints';
+import { MODULE_HINTS, SUGGESTION_HINTS, GENERIC_COMPLETION } from './guideHints';
 
 interface GuideState {
   isGuideActive: boolean;
@@ -98,11 +98,18 @@ export const GuideProvider = ({ children }: { children: ReactNode }) => {
     } else {
       // State B: all fields filled
       setHighlightFields([]);
-      const hasSuggestions = moduleDef.suggestions && moduleDef.suggestions.length > 0;
-      setHighlightSuggestions(!!hasSuggestions);
+      const suggestions = moduleDef.suggestions || [];
+      setHighlightSuggestions(suggestions.length > 0);
       
-      const completionMsg = COMPLETION_MESSAGES[node.type] || GENERIC_COMPLETION;
-      setGuideMessage(hasSuggestions ? completionMsg : '¡Cálculo completo!');
+      if (suggestions.length > 0) {
+        const lines = suggestions.map(s => {
+          const hint = SUGGESTION_HINTS[s.id] || '';
+          return `• ${s.label} → ${hint}`;
+        }).join('\n');
+        setGuideMessage(`${GENERIC_COMPLETION}\n\n${lines}`);
+      } else {
+        setGuideMessage('¡Cálculo completo!');
+      }
     }
   }, [isGuideActive]);
 

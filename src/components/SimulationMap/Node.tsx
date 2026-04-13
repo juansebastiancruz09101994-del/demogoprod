@@ -173,7 +173,7 @@ export const Node = ({
                           ${hasDemoHL
                             ? 'bg-yellow-100 text-yellow-800 border-yellow-400 ring-2 ring-yellow-300 animate-demo-pulse'
                             : hasGuideHL
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-300 ring-2 ring-emerald-200 animate-demo-pulse'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-300 ring-2 ring-emerald-200'
                               : 'bg-slate-100 hover:bg-blue-100 text-slate-600 hover:text-blue-700 border-slate-200'
                           }
                         `}
