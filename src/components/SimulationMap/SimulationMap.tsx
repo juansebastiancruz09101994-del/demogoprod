@@ -87,9 +87,8 @@ const SimulationMapInner = () => {
       setNodes(saved.nodes);
       setEdges(saved.edges);
     } else {
-      setNodes([]);
+      setNodes([...DEFAULT_NODES]);
       setEdges([]);
-      setShowModulePicker(true);
     }
 
     // Reset view
