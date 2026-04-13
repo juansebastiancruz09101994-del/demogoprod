@@ -2,7 +2,7 @@ import { Lightbulb, X } from 'lucide-react';
 import { useGuide } from './GuideContext';
 
 export const GuideOverlay = () => {
-  const { isGuideActive, guideMessage } = useGuide();
+  const { isGuideActive, guideMessage, toggleGuide } = useGuide();
 
   if (!isGuideActive || !guideMessage) return null;
 
@@ -21,12 +21,20 @@ export const GuideOverlay = () => {
 
             <div className="flex-1 min-w-0">
               <p className="text-[10px] font-bold uppercase tracking-wider text-blue-400 mb-1">
-                Asistente
+                GoProd
               </p>
               <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">
                 {guideMessage}
               </p>
             </div>
+
+            <button
+              onClick={toggleGuide}
+              className="p-1 rounded-md hover:bg-slate-100 transition-colors flex-shrink-0"
+              aria-label="Cerrar asistente"
+            >
+              <X className="w-4 h-4 text-slate-400" />
+            </button>
           </div>
         </div>
       </div>
