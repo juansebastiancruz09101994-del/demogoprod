@@ -1,30 +1,25 @@
 
 
-## Reestructurar el correo por fases del plan de trabajo
+## Crear tres documentos DOCX
 
-Se reescribirá el archivo `actualizacion_goprod.md` organizando el contenido en las tres etapas del plan de trabajo de Angélica, con los detalles que proporcionaste:
+Se generarán tres archivos `.docx` profesionales usando la librería `docx-js`:
 
-### Estructura del correo
+### Documento 1 — Correo resumen (`correo_resumen_goprod.docx`)
+Versión concisa tipo correo ejecutivo: saludo, lista de cambios principales en bullets, cierre cordial. Sin detalles técnicos.
 
-**Encabezado**: Para Roberto, Daniel, Angélica, Angie. De Juan Sebastián Cruz.
+### Documento 2 — Informe de avances por hitos (`informe_avances_goprod.docx`)
+Documento formal tipo informe con las tres fases del plan de Angélica, estado de cada hito (completado/pendiente), crédito a Daniel, recomendación de prueba A/B, y preguntas abiertas sobre responsabilidades de cierre. Basado en el contenido de `actualizacion_goprod_v2.md`.
 
-**Fase 1 — Ajustes (27 mar – 10 abr)**
-- Rediseñar entrada en modo demo → hecho: el modo demo se mantiene como ejercicio lúdico-pedagógico, y además se implementó la misma filosofía de insights/pistas en cada nodo del árbol principal
-- Completar panel de reporte → hecho: se cambiaron nomenclaturas técnicas (MP → Materia Prima, MO → Mano de Obra) para mayor claridad
-- Resolver formato decimal → hecho: separadores de miles automáticos + validación que obliga a usar punto para decimales
+### Documento 3 — Anexos técnicos (`anexos_tecnicos_goprod.docx`)
+Detalle de los 12 módulos con tablas de campos, fórmulas, mapa de conexiones y funcionalidades transversales. Basado en `actualizacion_goprod_tecnica.md`.
 
-**Fase 2 — Implementación (10 – 21 abr)**
-- Retroalimentación en campos bloqueados → resuelto: ya no hay campos bloqueados; el bloqueo anterior se debía a la confusión punto/coma, ahora cubierto por la validación. Además las ayudas visuales son dinámicas y contextuales (no un flujo determinista)
-- Simplificar instrucciones → resuelto: el asistente GoProd es adaptativo; el estudiante elige su punto de partida y recibe pistas según el nodo activo. Crédito a Daniel por la idea de organizar celdas con símbolos matemáticos
-- Prueba con usuarios → pendiente, fuera de alcance. Sugerir prueba A/B con estudiantes de maestría para validar robustez
+### Formato
+- Fuente Arial, encabezados con estilo Heading1/Heading2
+- Tablas con bordes y sombreado en encabezados
+- Tamaño carta US Letter
 
-**Fase 3 — Cierre (21 – 28 abr)**
-- Definir posicionamiento → hipótesis: GoProd como complemento (no sustituto), a validar con la prueba de usuarios
-- Versión consolidada del prototipo → documentada, código en GitHub (enlace pendiente)
-- Entregas y recomendaciones → preguntar al equipo quién es responsable (¿Angélica, Daniel, Juan Sebastián, Roberto, todos?)
-
-**Cierre**: tono cordial, invitación a comentarios
-
-### Archivo a generar
-- `/mnt/documents/actualizacion_goprod_v2.md` — versión reestructurada por fases
+### Archivos generados
+- `/mnt/documents/correo_resumen_goprod.docx`
+- `/mnt/documents/informe_avances_goprod.docx`
+- `/mnt/documents/anexos_tecnicos_goprod.docx`
 
