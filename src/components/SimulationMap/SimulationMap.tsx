@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Layers, X, Move, Maximize, ZoomIn, ZoomOut, Trash2, Download, MessageSquare, GraduationCap } from "lucide-react";
+import { Layers, X, Move, Maximize, ZoomIn, ZoomOut, Trash2, Download, MessageSquare, GraduationCap, PlayCircle, Package, Activity, DollarSign, TrendingUp } from "lucide-react";
 import { FeedbackModal } from "./FeedbackModal";
 import { exportStrategyPDF } from "./ExportPDF";
 import { Node } from "./Node";
@@ -9,6 +9,16 @@ import { MODULES } from "./modules";
 import { NodeData, Edge, ReportData } from "./types";
 import { DemoProvider, useDemo, ScenarioCards, DemoOverlay, DEMO_SCENARIOS } from "./DemoMode";
 
+const STARTER_MODULES = [
+  { id: 'production_target', title: 'Plan de Producción', icon: <PlayCircle className="w-5 h-5" />, color: 'bg-emerald-500', category: 'Start' },
+  { id: 'material_needs', title: 'Req. Materia Prima', icon: <Package className="w-5 h-5" />, color: 'bg-blue-500', category: 'Production' },
+  { id: 'labor_needs', title: 'Req. Mano de Obra', icon: <Activity className="w-5 h-5" />, color: 'bg-indigo-500', category: 'Production' },
+  { id: 'cost_material', title: 'Costo Material', icon: <DollarSign className="w-5 h-5" />, color: 'bg-teal-600', category: 'Finance' },
+  { id: 'cost_labor', title: 'Costo Mano de Obra', icon: <DollarSign className="w-5 h-5" />, color: 'bg-teal-600', category: 'Finance' },
+  { id: 'total_cost', title: 'Costo Total Prod.', icon: <DollarSign className="w-5 h-5" />, color: 'bg-slate-700', category: 'Finance' },
+  { id: 'unit_cost', title: 'Costo Unitario', icon: <TrendingUp className="w-5 h-5" />, color: 'bg-red-600', category: 'Finance' },
+];
+
 const DEFAULT_NODES: NodeData[] = [
   { id: "root", type: "production_target", x: 0, y: 0, data: { target: 280000 } },
 ];
@@ -17,8 +27,15 @@ const SimulationMapInner = () => {
   const [nodes, setNodes] = useState<NodeData[]>(() => {
     try {
       const saved = localStorage.getItem('goprod_nodes');
-      return saved ? JSON.parse(saved) : DEFAULT_NODES;
-    } catch { return DEFAULT_NODES; }
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  const [showModulePicker, setShowModulePicker] = useState(() => {
+    try {
+      const saved = localStorage.getItem('goprod_nodes');
+      const parsed = saved ? JSON.parse(saved) : [];
+      return parsed.length === 0;
+    } catch { return true; }
   });
   const [edges, setEdges] = useState<Edge[]>(() => {
     try {
@@ -296,6 +313,27 @@ const SimulationMapInner = () => {
     const parent = nodes.find((n) => n.id === parentId);
     if (!parent) return;
 
+    // Anti-duplicate: if a node of this type already exists, connect to it instead
+    const existingNode = nodes.find((n) => n.type === childType);
+    if (existingNode) {
+      const edgeExists = edges.some(e => 
+        (e.from === parentId && e.to === existingNode.id) || 
+        (e.from === existingNode.id && e.to === parentId)
+      );
+      if (!edgeExists) {
+        setEdges((prev) => [...prev, { from: parentId, to: existingNode.id }]);
+      }
+      setSelectedNodeId(existingNode.id);
+      // Demo: detect click-suggestion step completion
+      if (demo.isDemoActive) {
+        const step = demo.getCurrentStep();
+        if (step && step.targetType === 'click-suggestion' && step.suggestionId === childType) {
+          setTimeout(() => demo.advanceStep(), 300);
+        }
+      }
+      return;
+    }
+
     const newId = `node_${Date.now()}`;
     const newY = parent.y + 350;
     const existingChildren = edges.filter((e) => e.from === parentId);
@@ -351,16 +389,39 @@ const SimulationMapInner = () => {
   };
 
   const handleDelete = (id: string) => {
-    if (id === "root") return;
-    setNodes((prev) => prev.filter((n) => n.id !== id));
+    setNodes((prev) => {
+      const remaining = prev.filter((n) => n.id !== id);
+      if (remaining.length === 0) setShowModulePicker(true);
+      return remaining;
+    });
     setEdges((prev) => prev.filter((e) => e.from !== id && e.to !== id));
+  };
+
+  const handleSelectStartModule = (moduleId: string) => {
+    const moduleDef = MODULES[moduleId];
+    const initialData: Record<string, number> = {};
+    moduleDef.variables.forEach((v) => { initialData[v.id] = 0; });
+    
+    const newNode: NodeData = {
+      id: "root",
+      type: moduleId,
+      x: 0,
+      y: 0,
+      data: initialData,
+    };
+    setNodes([newNode]);
+    setEdges([]);
+    setShowModulePicker(false);
+    setPan({ x: window.innerWidth / 2 - 160, y: 100 });
+    setZoom(1);
   };
 
   const handleResetAll = () => {
     if (!window.confirm('¿Estás seguro de que quieres reiniciar el simulador? Se borrarán todos los cálculos.')) return;
-    setNodes([...DEFAULT_NODES]);
+    setNodes([]);
     setEdges([]);
     setReportData(null);
+    setShowModulePicker(true);
     localStorage.removeItem('goprod_nodes');
     localStorage.removeItem('goprod_edges');
     localStorage.removeItem('goprod_report');
@@ -369,10 +430,10 @@ const SimulationMapInner = () => {
   };
 
   const handleStartDemo = () => {
-    // Reset everything first
     setNodes([...DEFAULT_NODES]);
     setEdges([]);
     setReportData(null);
+    setShowModulePicker(false);
     localStorage.removeItem('goprod_nodes');
     localStorage.removeItem('goprod_edges');
     localStorage.removeItem('goprod_report');
@@ -425,6 +486,33 @@ const SimulationMapInner = () => {
 
       {/* Demo Overlay */}
       <DemoOverlay />
+
+      {/* Module Picker */}
+      {showModulePicker && !demo.isDemoActive && (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center pointer-events-none">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-lg mx-4 pointer-events-auto animate-scale-in border border-slate-200">
+            <h2 className="font-bold text-lg text-slate-800 mb-1">¿Por dónde quieres empezar?</h2>
+            <p className="text-sm text-slate-500 mb-4">Elige el módulo inicial. Luego podrás derivar los demás cálculos desde ahí.</p>
+            <div className="grid grid-cols-2 gap-3">
+              {STARTER_MODULES.map((mod) => (
+                <button
+                  key={mod.id}
+                  onClick={() => handleSelectStartModule(mod.id)}
+                  className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:border-blue-400 hover:bg-blue-50/50 transition-all text-left group"
+                >
+                  <div className={`p-2 rounded-lg text-white ${mod.color}`}>
+                    {mod.icon}
+                  </div>
+                  <div>
+                    <div className="font-semibold text-sm text-slate-700 group-hover:text-blue-700 transition-colors">{mod.title}</div>
+                    <div className="text-[10px] text-slate-400 uppercase">{mod.category}</div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Welcome Modal */}
       {showOverlay && (
