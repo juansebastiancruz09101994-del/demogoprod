@@ -488,6 +488,33 @@ const SimulationMapInner = () => {
       {/* Demo Overlay */}
       <DemoOverlay />
 
+      {/* Module Picker */}
+      {showModulePicker && !demo.isDemoActive && (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center pointer-events-none">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-lg mx-4 pointer-events-auto animate-scale-in border border-slate-200">
+            <h2 className="font-bold text-lg text-slate-800 mb-1">¿Por dónde quieres empezar?</h2>
+            <p className="text-sm text-slate-500 mb-4">Elige el módulo inicial. Luego podrás derivar los demás cálculos desde ahí.</p>
+            <div className="grid grid-cols-2 gap-3">
+              {STARTER_MODULES.map((mod) => (
+                <button
+                  key={mod.id}
+                  onClick={() => handleSelectStartModule(mod.id)}
+                  className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:border-blue-400 hover:bg-blue-50/50 transition-all text-left group"
+                >
+                  <div className={`p-2 rounded-lg text-white ${mod.color}`}>
+                    {mod.icon}
+                  </div>
+                  <div>
+                    <div className="font-semibold text-sm text-slate-700 group-hover:text-blue-700 transition-colors">{mod.title}</div>
+                    <div className="text-[10px] text-slate-400 uppercase">{mod.category}</div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Welcome Modal */}
       {showOverlay && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
