@@ -9,6 +9,7 @@ interface NodeProps {
   node: NodeData;
   data: Record<string, number>;
   onUpdate: (id: string, data: Record<string, number>) => void;
+  onTargetChange: (id: string, targetId: string) => void;
   onDragStart: (e: React.MouseEvent, id: string) => void;
   onAddChild: (parentId: string, childType: string, varMap: Record<string, string>) => void;
   onDelete: (id: string) => void;
@@ -24,6 +25,7 @@ export const Node = ({
   node, 
   data, 
   onUpdate, 
+  onTargetChange,
   onDragStart, 
   onAddChild, 
   onDelete, 
@@ -36,7 +38,7 @@ export const Node = ({
   const [showFormula, setShowFormula] = useState(false);
   
   const [targetId, setTargetId] = useState<string | null>(
-    definition.variables.length === 1 ? null : definition.variables[0].id
+    node.targetId || (definition.variables.length === 1 ? null : definition.variables[0].id)
   );
 
   const currentFormula = (targetId && definition.formulas && definition.formulas[targetId]) 
@@ -64,6 +66,7 @@ export const Node = ({
 
   const handleTargetChange = (newTarget: string) => {
     setTargetId(newTarget);
+    onTargetChange(node.id, newTarget);
     if (definition.solve) {
       const result = definition.solve(inputs, newTarget);
       const currentValue = inputs[newTarget] || 0;

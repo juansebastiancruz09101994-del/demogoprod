@@ -34,6 +34,7 @@ export interface NodeData {
   x: number;
   y: number;
   data: Record<string, number>;
+  targetId?: string;
 }
 
 export interface Edge {
