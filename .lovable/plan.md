@@ -1,81 +1,44 @@
 
-Corregiría esto en cuatro frentes, porque ya pude ubicar exactamente por qué está fallando:
 
-### 1. Hacer que GoProd sí sea draggable y no arrastre nodos/canvas
-Problema detectado:
-- El overlay hoy escucha `mousemove` global, pero no aísla bien el gesto.
-- Además, el canvas sigue reaccionando al mouse y por eso se mueve el fondo o incluso nodos.
-- El texto se puede seleccionar porque el cuerpo del asistente no está tratado como superficie interactiva aislada.
+## Cambios: posición GoProd + formato numérico con separador de miles
 
-Qué haré:
-- Limitar el drag de GoProd a un “header” real del overlay, no al contenido.
-- Frenar propagación del mouse y del pointer desde el overlay hacia el canvas.
-- Desactivar selección de texto mientras se arrastra.
-- Evitar que cualquier click dentro del overlay dispare `onMouseDown` del canvas o de nodos.
-- Mantener la posición del overlay independiente del sistema de nodos.
+### 1. Posición por defecto del asistente GoProd en la esquina superior derecha
 
-### 2. Rehacer el parser del mensaje para que el formato salga siempre bien
-Problema detectado:
-- El parser actual solo toma bullets dentro de bloques separados por `\n\n`.
-- Si los bullets llegan en una sola cadena con saltos simples, o mezclados con el texto, no los reconoce bien.
-- Por eso aparecen bullets sin negrita como “Calcular Costo Mano de Obra”.
+En `GuideOverlay.tsx`, cambiar la posición inicial de `{ left: '50%', bottom: 80, transform: 'translateX(-50%)' }` a `{ right: 16, top: 16 }` (esquina superior derecha del canvas). Ajustar el estilo inline y la lógica de posición para que arranque ahí.
 
-Qué haré:
-- Parsear línea por línea, no por bloques.
-- Detectar cualquier línea que empiece con `•`, aunque no venga separada por doble salto.
-- Separar correctamente `label` y `description` usando la flecha `→`.
-- Si una línea no trae descripción, mostrarla de forma segura y consistente en vez de romper el formato.
-- Renderizar:
-  - mensaje principal como párrafo
-  - bullets como lista
-  - etiqueta en negrita
-  - descripción en texto normal
+### 2. Formato de miles automático + validación de comas en inputs numéricos
 
-### 3. Completar y auditar todas las recomendaciones/insights
-Problema detectado:
-- “Definir Producción Objetivo →” sale incompleto porque `SUGGESTION_HINTS` no tiene entrada para `production_target`.
-- Hay riesgo de que existan otras sugerencias sin insight asociado.
+El input actual es `type="number"`, lo cual no permite formatear visualmente con comas. Para lograr el comportamiento deseado:
 
-Qué haré:
-- Revisar todas las `suggestions` definidas en `modules.tsx`.
-- Cruzarlas contra `SUGGESTION_HINTS`.
-- Completar las faltantes, empezando por `production_target`.
-- Ajustar el copy para que todas las rutas sugeridas tengan texto gerencial útil y completo.
-- Verificar también que no haya labels inconsistentes o duplicados que rompan la lectura.
+**En `FormulaLayout.tsx` (componente `VariableInput`):**
+- Cambiar `type="number"` → `type="text"` con `inputMode="decimal"`
+- Mantener un estado local `displayValue` (string formateado) separado del valor numérico real
+- Al escribir:
+  - Rechazar comas (`,`): si el usuario escribe una coma, colorear el borde en rojo y mostrar un mensaje inline pequeño ("Usa punto (.) para decimales")
+  - Permitir solo dígitos y un punto decimal
+  - Formatear automáticamente la parte entera con comas de miles (ej: `1,250,000`)
+  - Pasar el valor numérico limpio (`parseFloat`) al `onChange` existente
+- Al recibir un resultado calculado (campos `isTarget`/`isResult`), mostrar también formateado con comas de miles
 
-### 4. Ajustar el overlay a la UX que pides
-Qué haré:
-- Volver al ancho anterior (`max-w-md`).
-- Bajar ligeramente la tipografía para que respire mejor.
-- Recuperar altura variable según el contenido.
-- Mantener solo un `max-height` razonable como red de seguridad extrema, no como altura fija principal.
-- Conservar el efecto cristal líquido suave, con más opacidad en hover pero sin competir con el nodo activo.
+**En `Node.tsx` (`handleInputChange`):**
+- Adaptar para recibir el valor numérico ya parseado (sin cambios significativos, porque el parsing se hará dentro de `VariableInput`)
+
+### Detalle técnico del formateo
+
+```text
+Usuario escribe: 1250000
+Se muestra: 1,250,000
+
+Usuario escribe: 4.30
+Se muestra: 4.30
+
+Usuario escribe: 4,30 (con coma)
+→ Borde rojo + tooltip: "Usa punto (.) para decimales"
+→ No se acepta el valor
+```
 
 ### Archivos a modificar
-1. `src/components/SimulationMap/Guide/GuideOverlay.tsx`
-   - aislar drag
-   - evitar selección accidental
-   - rehacer parsing/formato
-   - volver a ancho más compacto y altura variable
 
-2. `src/components/SimulationMap/Guide/guideHints.ts`
-   - completar insights faltantes
-   - revisar consistencia de todas las recomendaciones
+1. **`src/components/SimulationMap/Guide/GuideOverlay.tsx`** — posición inicial top-right
+2. **`src/components/SimulationMap/FormulaLayout.tsx`** — input text con formateo de miles, validación de coma, estado display local
 
-3. `src/components/SimulationMap/Guide/GuideContext.tsx`
-   - si hace falta, normalizar cómo se construye el mensaje para que siempre llegue en formato parseable
-
-### Validación que haré al implementar
-- Arrastrar GoProd desde su cabecera sin mover canvas ni nodos
-- Hacer click dentro del texto sin seleccionar accidentalmente ni desplazar otros elementos
-- Verificar que todas las sugerencias salgan con:
-  - bullet
-  - etiqueta en negrita
-  - descripción completa
-- Confirmar específicamente que “Calcular Costo Mano de Obra” y “Definir Producción Objetivo” queden bien formateadas y completas
-
-### Detalle técnico
-La causa principal no es visual sino estructural:
-- el drag del overlay no está aislado del sistema de drag del canvas
-- el parser del mensaje es demasiado frágil
-- falta al menos un `SUGGESTION_HINTS['production_target']`, lo que genera la flecha vacía
