@@ -782,9 +782,23 @@ const SimulationMapInner = () => {
               ¿Eliminar <span className="font-semibold">"{deleteConfirm.name}"</span>?
             </p>
             {deleteConfirm.descendants.length > 0 && (
-              <p className="text-sm text-red-600 font-medium mb-4">
-                También se eliminarán {deleteConfirm.descendants.length} nodo(s) conectado(s).
-              </p>
+              <div className="mb-4">
+                <p className="text-sm text-red-600 font-medium mb-2">
+                  También se eliminarán {deleteConfirm.descendants.length} nodo(s) conectado(s):
+                </p>
+                <ul className="space-y-1 ml-1">
+                  {deleteConfirm.descendants.map(dId => {
+                    const dNode = nodes.find(n => n.id === dId);
+                    const dMod = dNode ? MODULES[dNode.type] : null;
+                    return (
+                      <li key={dId} className="flex items-center gap-2 text-xs text-slate-600">
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
+                        {dMod?.title || 'Nodo desconocido'}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
             )}
             {deleteConfirm.descendants.length === 0 && <div className="mb-4" />}
             <p className="text-xs text-slate-400 mb-5">Esta acción no se puede deshacer.</p>
