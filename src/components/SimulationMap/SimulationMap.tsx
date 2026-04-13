@@ -867,5 +867,3 @@ export const SimulationMap = () => (
     </DemoProvider>
   </GuideProvider>
 );
-  </DemoProvider>
-);
