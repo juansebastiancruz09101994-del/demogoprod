@@ -697,6 +697,18 @@ const SimulationMapInner = () => {
         >
           <GraduationCap className="w-4 h-4" />
         </button>
+        {/* Guide Toggle */}
+        <button
+          onClick={guide.toggleGuide}
+          className={`p-2 rounded-lg shadow border transition-colors ${
+            guide.isGuideActive
+              ? 'bg-blue-600 text-white border-blue-500'
+              : 'bg-white text-slate-400 hover:text-blue-600 hover:border-blue-300 border-slate-200'
+          }`}
+          title={guide.isGuideActive ? 'Desactivar asistente' : 'Activar asistente'}
+        >
+          <Lightbulb className="w-4 h-4" />
+        </button>
         <button
           onClick={() => setFeedbackOpen(true)}
           className="bg-white p-2 rounded-lg shadow border border-slate-200 text-slate-400 hover:text-blue-600 hover:border-blue-300 transition-colors"
