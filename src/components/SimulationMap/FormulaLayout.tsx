@@ -13,6 +13,7 @@ interface FormulaLayoutProps {
     step: DemoStep;
     accentColor: string;
   } | null;
+  guideHighlightFields?: string[];
 }
 
 export const FormulaLayout = ({
@@ -22,6 +23,7 @@ export const FormulaLayout = ({
   onInputChange,
   onTargetChange,
   demoHighlight,
+  guideHighlightFields,
 }: FormulaLayoutProps) => {
   const variables = definition.variables;
   const formulaVisual = definition.formulaVisual;
@@ -40,6 +42,7 @@ export const FormulaLayout = ({
             onChange={onInputChange}
             onTargetChange={onTargetChange}
             demoHighlight={demoHighlight}
+            guideHighlightFields={guideHighlightFields}
           />
         ))}
       </div>
@@ -61,6 +64,7 @@ export const FormulaLayout = ({
             onChange={onInputChange}
             onTargetChange={onTargetChange}
             demoHighlight={demoHighlight}
+            guideHighlightFields={guideHighlightFields}
           />
         ))}
       </div>
@@ -84,6 +88,7 @@ export const FormulaLayout = ({
             onInputChange={onInputChange}
             onTargetChange={onTargetChange}
             demoHighlight={demoHighlight}
+            guideHighlightFields={guideHighlightFields}
           />
         ))}
       </div>
@@ -105,6 +110,7 @@ export const FormulaLayout = ({
           onChange={onInputChange}
           onTargetChange={onTargetChange}
           demoHighlight={demoHighlight}
+          guideHighlightFields={guideHighlightFields}
           isResult
         />
       )}
@@ -121,6 +127,7 @@ const StepRenderer = ({
   onInputChange,
   onTargetChange,
   demoHighlight,
+  guideHighlightFields,
   nested = false,
 }: {
   step: FormulaStep;
@@ -130,6 +137,7 @@ const StepRenderer = ({
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>, varId: string) => void;
   onTargetChange: (newTarget: string) => void;
   demoHighlight?: { step: DemoStep; accentColor: string } | null;
+  guideHighlightFields?: string[];
   nested?: boolean;
 }) => {
   if (step.type === 'op') {
@@ -154,6 +162,7 @@ const StepRenderer = ({
         onChange={onInputChange}
         onTargetChange={onTargetChange}
         demoHighlight={demoHighlight}
+        guideHighlightFields={guideHighlightFields}
         compact={nested}
       />
     );
@@ -175,6 +184,7 @@ const StepRenderer = ({
             onInputChange={onInputChange}
             onTargetChange={onTargetChange}
             demoHighlight={demoHighlight}
+            guideHighlightFields={guideHighlightFields}
             nested
           />
         ))}
@@ -194,6 +204,7 @@ const VariableInput = ({
   onChange,
   onTargetChange,
   demoHighlight,
+  guideHighlightFields,
   isResult = false,
   compact = false,
 }: {
@@ -204,18 +215,30 @@ const VariableInput = ({
   onChange: (e: React.ChangeEvent<HTMLInputElement>, varId: string) => void;
   onTargetChange: (newTarget: string) => void;
   demoHighlight?: { step: DemoStep; accentColor: string } | null;
+  guideHighlightFields?: string[];
   isResult?: boolean;
   compact?: boolean;
 }) => {
-  const hasHighlight = demoHighlight
+  const hasDemoHighlight = demoHighlight
     && demoHighlight.step.targetType === 'fill-input'
     && demoHighlight.step.targetVariable === variable.id;
 
+  const hasGuideHighlight = !hasDemoHighlight
+    && guideHighlightFields
+    && guideHighlightFields.includes(variable.id);
+
+  const hasHighlight = hasDemoHighlight || hasGuideHighlight;
+
   return (
     <div className={`flex items-center gap-2 text-sm relative ${hasHighlight ? 'z-20' : ''} ${compact ? 'py-0' : ''}`}>
-      {hasHighlight && (
+      {hasDemoHighlight && (
         <div className="absolute -left-8 top-1/2 -translate-y-1/2">
           <GuidePulse color={demoHighlight!.accentColor} size="sm" />
+        </div>
+      )}
+      {hasGuideHighlight && !hasDemoHighlight && (
+        <div className="absolute -left-8 top-1/2 -translate-y-1/2">
+          <GuidePulse color="#3b82f6" size="sm" />
         </div>
       )}
 
@@ -272,9 +295,11 @@ const VariableInput = ({
           className={`w-full px-2 py-1 rounded border text-right font-mono
             ${isTarget || isResult
               ? 'bg-emerald-50 border-emerald-300 text-emerald-700 font-bold'
-              : hasHighlight
+              : hasDemoHighlight
                 ? 'bg-yellow-50 border-yellow-400 ring-2 ring-yellow-300 outline-none'
-                : 'bg-slate-50 border-slate-200 focus:border-blue-400 outline-none'
+                : hasGuideHighlight
+                  ? 'bg-blue-50 border-blue-400 ring-2 ring-blue-300 outline-none'
+                  : 'bg-slate-50 border-slate-200 focus:border-blue-400 outline-none'
             }
           `}
           placeholder="0"

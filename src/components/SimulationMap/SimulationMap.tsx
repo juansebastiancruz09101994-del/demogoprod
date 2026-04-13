@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
-import { Layers, X, Move, Maximize, ZoomIn, ZoomOut, Trash2, Download, MessageSquare, GraduationCap, PlayCircle, Package, Activity, DollarSign, TrendingUp } from "lucide-react";
+import { Layers, X, Move, Maximize, ZoomIn, ZoomOut, Trash2, Download, MessageSquare, GraduationCap, PlayCircle, Package, Activity, DollarSign, TrendingUp, Lightbulb } from "lucide-react";
 import { FeedbackModal } from "./FeedbackModal";
 import { exportStrategyPDF } from "./ExportPDF";
 import { Node } from "./Node";
@@ -9,6 +9,7 @@ import { ReportPanel } from "./ReportPanel";
 import { MODULES } from "./modules";
 import { NodeData, Edge, ReportData } from "./types";
 import { DemoProvider, useDemo, ScenarioCards, DemoOverlay, DEMO_SCENARIOS } from "./DemoMode";
+import { GuideProvider, useGuide, GuideOverlay } from "./Guide";
 
 const STARTER_MODULES = [
   { id: 'production_target', title: 'Plan de Producción', icon: <PlayCircle className="w-5 h-5" />, color: 'bg-emerald-500', category: 'Start' },
@@ -67,6 +68,7 @@ const SimulationMapInner = () => {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   const demo = useDemo();
+  const guide = useGuide();
   const prevScenarioRef = useRef(demo.currentScenario);
 
   // Demo: swap canvas when scenario changes
@@ -537,6 +539,15 @@ const SimulationMapInner = () => {
     demo.startDemo();
   };
 
+  // Recompute guide whenever selected node or node data changes
+  useEffect(() => {
+    if (demo.isDemoActive) {
+      // Guide is disabled during demo
+      return;
+    }
+    guide.computeGuidance(selectedNodeId, nodes);
+  }, [selectedNodeId, nodes, demo.isDemoActive, guide.isGuideActive]);
+
   // Get current demo highlight info for nodes
   const getDemoHighlight = (nodeType: string) => {
     if (!demo.isDemoActive) return null;
@@ -545,6 +556,16 @@ const SimulationMapInner = () => {
     if (step.targetType !== 'fill-input' && step.targetType !== 'click-suggestion') return null;
     const scenario = DEMO_SCENARIOS.find(s => s.id === demo.currentScenario);
     return { step, accentColor: scenario?.accentColor ?? '#3b82f6' };
+  };
+
+  // Get guide highlight for a specific node
+  const getGuideHighlight = (nodeId: string) => {
+    if (demo.isDemoActive || !guide.isGuideActive) return null;
+    if (guide.activeNodeId !== nodeId) return null;
+    return {
+      highlightFields: guide.highlightFields,
+      highlightSuggestions: guide.highlightSuggestions,
+    };
   };
 
   return (
@@ -581,6 +602,9 @@ const SimulationMapInner = () => {
 
       {/* Demo Overlay */}
       <DemoOverlay />
+
+      {/* Guide Overlay */}
+      {!demo.isDemoActive && <GuideOverlay />}
 
       {/* Module Picker */}
       {showModulePicker && !demo.isDemoActive && (
@@ -673,6 +697,18 @@ const SimulationMapInner = () => {
         >
           <GraduationCap className="w-4 h-4" />
         </button>
+        {/* Guide Toggle */}
+        <button
+          onClick={guide.toggleGuide}
+          className={`p-2 rounded-lg shadow border transition-colors ${
+            guide.isGuideActive
+              ? 'bg-blue-600 text-white border-blue-500'
+              : 'bg-white text-slate-400 hover:text-blue-600 hover:border-blue-300 border-slate-200'
+          }`}
+          title={guide.isGuideActive ? 'Desactivar asistente' : 'Activar asistente'}
+        >
+          <Lightbulb className="w-4 h-4" />
+        </button>
         <button
           onClick={() => setFeedbackOpen(true)}
           className="bg-white p-2 rounded-lg shadow border border-slate-200 text-slate-400 hover:text-blue-600 hover:border-blue-300 transition-colors"
@@ -755,6 +791,7 @@ const SimulationMapInner = () => {
               isSelected={selectedNodeId === node.id}
               onSelect={setSelectedNodeId}
               demoHighlight={getDemoHighlight(node.type)}
+              guideHighlight={getGuideHighlight(node.id)}
             />
           ))}
         </div>
@@ -824,7 +861,9 @@ const SimulationMapInner = () => {
 };
 
 export const SimulationMap = () => (
-  <DemoProvider>
-    <SimulationMapInner />
-  </DemoProvider>
+  <GuideProvider>
+    <DemoProvider>
+      <SimulationMapInner />
+    </DemoProvider>
+  </GuideProvider>
 );
