@@ -343,14 +343,13 @@ const SimulationMapInner = () => {
         }
 
         if (changed) {
-          // Re-solve: find the variable that should be computed (first one with a known value of 0 or the last variable)
+          // Use the stored targetId to know which variable to recalculate
           const vars = childMod.variables;
-          const filledCount = vars.filter(v => childData[v.id] && childData[v.id] !== 0).length;
-          if (filledCount >= vars.length - 1) {
-            const targetVar = vars.find(v => !childData[v.id] || childData[v.id] === 0) || vars[vars.length - 1];
-            const solved = childMod.solve(childData, targetVar.id);
+          const storedTarget = child.targetId || (vars.length > 1 ? vars[0].id : null);
+          if (storedTarget && childMod.solve) {
+            const solved = childMod.solve(childData, storedTarget);
             if (solved !== null) {
-              childData[targetVar.id] = solved;
+              childData[storedTarget] = parseFloat(solved.toFixed(2));
             }
           }
 
@@ -367,6 +366,10 @@ const SimulationMapInner = () => {
       const updated = prev.map((n) => (n.id === id ? { ...n, data: newData } : n));
       return propagateValues(updated, id, edges);
     });
+  };
+
+  const handleTargetChange = (id: string, targetId: string) => {
+    setNodes((prev) => prev.map((n) => n.id === id ? { ...n, targetId } : n));
   };
 
   const handleAddChild = (parentId: string, childType: string, varMap: Record<string, string>) => {
@@ -713,6 +716,7 @@ const SimulationMapInner = () => {
               node={node}
               data={node.data}
               onUpdate={handleNodeUpdate}
+              onTargetChange={handleTargetChange}
               onDragStart={handleNodeDragStart}
               onAddChild={handleAddChild}
               onDelete={handleDelete}
