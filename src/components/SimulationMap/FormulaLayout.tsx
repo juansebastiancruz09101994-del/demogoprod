@@ -231,9 +231,14 @@ const VariableInput = ({
 
   return (
     <div className={`flex items-center gap-2 text-sm relative ${hasHighlight ? 'z-20' : ''} ${compact ? 'py-0' : ''}`}>
-      {hasHighlight && (
+      {hasDemoHighlight && (
         <div className="absolute -left-8 top-1/2 -translate-y-1/2">
           <GuidePulse color={demoHighlight!.accentColor} size="sm" />
+        </div>
+      )}
+      {hasGuideHighlight && !hasDemoHighlight && (
+        <div className="absolute -left-8 top-1/2 -translate-y-1/2">
+          <GuidePulse color="#3b82f6" size="sm" />
         </div>
       )}
 
@@ -290,9 +295,11 @@ const VariableInput = ({
           className={`w-full px-2 py-1 rounded border text-right font-mono
             ${isTarget || isResult
               ? 'bg-emerald-50 border-emerald-300 text-emerald-700 font-bold'
-              : hasHighlight
+              : hasDemoHighlight
                 ? 'bg-yellow-50 border-yellow-400 ring-2 ring-yellow-300 outline-none'
-                : 'bg-slate-50 border-slate-200 focus:border-blue-400 outline-none'
+                : hasGuideHighlight
+                  ? 'bg-blue-50 border-blue-400 ring-2 ring-blue-300 outline-none'
+                  : 'bg-slate-50 border-slate-200 focus:border-blue-400 outline-none'
             }
           `}
           placeholder="0"
