@@ -1,5 +1,10 @@
 import { ReactNode } from 'react';
 
+export type FormulaStep =
+  | { type: 'var'; id: string }
+  | { type: 'op'; symbol: string }
+  | { type: 'group'; label: string; steps: FormulaStep[] };
+
 export interface Variable {
   id: string;
   label: string;
@@ -24,6 +29,7 @@ export interface ModuleDefinition {
   baseFormula: string;
   formulas?: Record<string, string>;
   variables: Variable[];
+  formulaVisual?: Record<string, FormulaStep[]>;
   solve: (vals: Record<string, number>, targetId: string) => number | null;
   suggestions: Suggestion[];
 }
@@ -55,11 +61,11 @@ export interface ReportData {
   plantUsageRate: number;
   
   // Costos de Referencia
-  totalProductionCost: number;    // CGS
-  unitCostIndustrial: number;     // Promedio C8 y G8 de Detailed Income Statement
-  unitCostConsumer: number;       // Promedio E8 e I8 de Detailed Income Statement
-  discretionaryExpenses: number;  // Other Expenses
-  fixedCosts: number;             // Fixed Costs
+  totalProductionCost: number;
+  unitCostIndustrial: number;
+  unitCostConsumer: number;
+  discretionaryExpenses: number;
+  fixedCosts: number;
   
   // Mano de Obra
   workersOpening: number;

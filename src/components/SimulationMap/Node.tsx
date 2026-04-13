@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Lock, X, Plus, Info, FunctionSquare, HelpCircle } from 'lucide-react';
+import { X, Plus, Info, FunctionSquare } from 'lucide-react';
 import { MODULES } from './modules';
 import { NodeData } from './types';
 import { GuidePulse } from './DemoMode/GuidePulse';
+import { FormulaLayout } from './FormulaLayout';
 import type { DemoStep } from './DemoMode/demoScenarios';
 
 interface NodeProps {
@@ -73,7 +74,7 @@ export const Node = ({
 
       if (result !== null) {
         if (result === 0 && currentValue !== 0) {
-          // Do NOT overwrite. Keep the existing value.
+          // Do NOT overwrite
         } else {
           const newInputs = { ...inputs, [newTarget]: parseFloat(result.toFixed(2)) };
           setInputs(newInputs);
@@ -81,13 +82,6 @@ export const Node = ({
         }
       }
     }
-  };
-
-  // Determine if this node has a demo highlight for a specific variable or suggestion
-  const isHighlightedInput = (varId: string) => {
-    if (!demoHighlight) return false;
-    const { step } = demoHighlight;
-    return step.targetType === 'fill-input' && step.targetVariable === varId;
   };
 
   const isHighlightedSuggestion = (suggestionId: string) => {
@@ -140,69 +134,14 @@ export const Node = ({
           </div>
         )}
 
-        {definition.variables.map(v => {
-          const isTarget = targetId === v.id;
-          const hasHighlight = isHighlightedInput(v.id);
-          return (
-            <div key={v.id} className={`flex items-center gap-2 text-sm relative ${hasHighlight ? 'z-20' : ''}`}>
-              {hasHighlight && (
-                <div className="absolute -left-8 top-1/2 -translate-y-1/2">
-                  <GuidePulse color={demoHighlight!.accentColor} size="sm" />
-                </div>
-              )}
-              <div className="flex flex-col gap-1">
-                {definition.variables.length > 1 && (
-                  <button 
-                    onClick={() => handleTargetChange(v.id)}
-                    className={`p-1 rounded transition-colors ${isTarget ? 'text-blue-600 bg-blue-50' : 'text-slate-400 hover:text-slate-600'}`}
-                    title="Resolver para esto"
-                  >
-                    {isTarget ? <Lock className="w-3 h-3" /> : <div className="w-3 h-3 rounded-full border border-current" />}
-                  </button>
-                )}
-                {definition.variables.length === 1 && (
-                   <div className="w-5 flex justify-center text-slate-300">
-                      <div className="w-1.5 h-1.5 rounded-full bg-slate-200" />
-                   </div>
-                )}
-              </div>
-              
-              <div className="flex-1">
-                <div className="flex justify-between items-center mb-0.5">
-                  <div className="flex items-center gap-1">
-                    <span className="text-slate-600 font-medium text-xs">{v.label}</span>
-                    {v.insight && (
-                      <div className="group relative flex items-center">
-                        <HelpCircle className="w-3 h-3 text-slate-400 hover:text-blue-500 cursor-help transition-colors" />
-                        <div className="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 w-48 p-2 bg-slate-800 text-white text-[10px] leading-tight rounded shadow-xl z-50 mb-1 pointer-events-none after:content-[''] after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:border-4 after:border-transparent after:border-t-slate-800">
-                          {v.insight}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  <span className="text-slate-400 font-mono text-[10px]">{v.unit}</span>
-                </div>
-                <input 
-                  type="number" 
-                  step="any"
-                  value={inputs[v.id] !== undefined ? inputs[v.id] : ''} 
-                  onChange={(e) => handleInputChange(e, v.id)}
-                  readOnly={isTarget}
-                  onMouseDown={(e) => e.stopPropagation()}
-                  className={`w-full px-2 py-1 rounded border text-right font-mono
-                    ${isTarget 
-                      ? 'bg-blue-50 border-blue-200 text-blue-700 font-bold' 
-                      : hasHighlight
-                        ? 'bg-yellow-50 border-yellow-400 ring-2 ring-yellow-300 outline-none'
-                        : 'bg-slate-50 border-slate-200 focus:border-blue-400 outline-none'
-                    }
-                  `}
-                  placeholder="0"
-                />
-              </div>
-            </div>
-          );
-        })}
+        <FormulaLayout
+          definition={definition}
+          targetId={targetId}
+          inputs={inputs}
+          onInputChange={handleInputChange}
+          onTargetChange={handleTargetChange}
+          demoHighlight={demoHighlight}
+        />
 
         {definition.suggestions && definition.suggestions.length > 0 && (
           <div className="pt-2 mt-2 border-t border-slate-100">

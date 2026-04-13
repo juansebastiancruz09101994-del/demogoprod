@@ -43,6 +43,23 @@ export const MODULES: Record<string, ModuleDefinition> = {
       target: 'Objetivo = Total MP / Tasa',
       rate: 'Tasa = Total MP / Objetivo'
     },
+    formulaVisual: {
+      total_mp: [
+        { type: 'var', id: 'target' },
+        { type: 'op', symbol: '×' },
+        { type: 'var', id: 'rate' },
+      ],
+      target: [
+        { type: 'var', id: 'total_mp' },
+        { type: 'op', symbol: '÷' },
+        { type: 'var', id: 'rate' },
+      ],
+      rate: [
+        { type: 'var', id: 'total_mp' },
+        { type: 'op', symbol: '÷' },
+        { type: 'var', id: 'target' },
+      ],
+    },
     variables: [
       { 
         id: 'total_mp', 
@@ -87,6 +104,23 @@ export const MODULES: Record<string, ModuleDefinition> = {
       total_hours: 'Total Horas = Objetivo × Tasa',
       target: 'Objetivo = Total Horas / Tasa',
       rate: 'Tasa = Total Horas / Objetivo'
+    },
+    formulaVisual: {
+      total_hours: [
+        { type: 'var', id: 'target' },
+        { type: 'op', symbol: '×' },
+        { type: 'var', id: 'rate' },
+      ],
+      target: [
+        { type: 'var', id: 'total_hours' },
+        { type: 'op', symbol: '÷' },
+        { type: 'var', id: 'rate' },
+      ],
+      rate: [
+        { type: 'var', id: 'total_hours' },
+        { type: 'op', symbol: '÷' },
+        { type: 'var', id: 'target' },
+      ],
     },
     variables: [
       { 
@@ -133,6 +167,23 @@ export const MODULES: Record<string, ModuleDefinition> = {
       needed_hours: 'Horas = Trabajadores × HrsPorTrab',
       hrs_per_worker: 'HrsPorTrab = Horas / Trabajadores'
     },
+    formulaVisual: {
+      workers_req: [
+        { type: 'var', id: 'needed_hours' },
+        { type: 'op', symbol: '÷' },
+        { type: 'var', id: 'hrs_per_worker' },
+      ],
+      needed_hours: [
+        { type: 'var', id: 'workers_req' },
+        { type: 'op', symbol: '×' },
+        { type: 'var', id: 'hrs_per_worker' },
+      ],
+      hrs_per_worker: [
+        { type: 'var', id: 'needed_hours' },
+        { type: 'op', symbol: '÷' },
+        { type: 'var', id: 'workers_req' },
+      ],
+    },
     variables: [
       { 
         id: 'workers_req', 
@@ -177,6 +228,32 @@ export const MODULES: Record<string, ModuleDefinition> = {
       required: 'Req = (Nuevos / 2) + Actual',
       current: 'Actual = Req - (Nuevos / 2)'
     },
+    formulaVisual: {
+      hires: [
+        { type: 'group', label: '', steps: [
+          { type: 'var', id: 'required' },
+          { type: 'op', symbol: '−' },
+          { type: 'var', id: 'current' },
+        ]},
+        { type: 'op', symbol: '× 2' },
+      ],
+      required: [
+        { type: 'group', label: '', steps: [
+          { type: 'var', id: 'hires' },
+          { type: 'op', symbol: '÷ 2' },
+        ]},
+        { type: 'op', symbol: '+' },
+        { type: 'var', id: 'current' },
+      ],
+      current: [
+        { type: 'var', id: 'required' },
+        { type: 'op', symbol: '−' },
+        { type: 'group', label: '', steps: [
+          { type: 'var', id: 'hires' },
+          { type: 'op', symbol: '÷ 2' },
+        ]},
+      ],
+    },
     variables: [
       { 
         id: 'hires', 
@@ -218,6 +295,23 @@ export const MODULES: Record<string, ModuleDefinition> = {
       target_finished: 'Objetivo = Uds Empaque / Ratio',
       ratio: 'Ratio = Uds Empaque / Objetivo'
     },
+    formulaVisual: {
+      pack_units: [
+        { type: 'var', id: 'target_finished' },
+        { type: 'op', symbol: '×' },
+        { type: 'var', id: 'ratio' },
+      ],
+      target_finished: [
+        { type: 'var', id: 'pack_units' },
+        { type: 'op', symbol: '÷' },
+        { type: 'var', id: 'ratio' },
+      ],
+      ratio: [
+        { type: 'var', id: 'pack_units' },
+        { type: 'op', symbol: '÷' },
+        { type: 'var', id: 'target_finished' },
+      ],
+    },
     variables: [
       { 
         id: 'pack_units', 
@@ -258,6 +352,23 @@ export const MODULES: Record<string, ModuleDefinition> = {
       cost: 'Costo = Unidades × Precio',
       units: 'Unidades = Costo / Precio',
       price: 'Precio = Costo / Unidades'
+    },
+    formulaVisual: {
+      cost: [
+        { type: 'var', id: 'units' },
+        { type: 'op', symbol: '×' },
+        { type: 'var', id: 'price' },
+      ],
+      units: [
+        { type: 'var', id: 'cost' },
+        { type: 'op', symbol: '÷' },
+        { type: 'var', id: 'price' },
+      ],
+      price: [
+        { type: 'var', id: 'cost' },
+        { type: 'op', symbol: '÷' },
+        { type: 'var', id: 'units' },
+      ],
     },
     variables: [
       { 
@@ -303,6 +414,42 @@ export const MODULES: Record<string, ModuleDefinition> = {
       workers: 'Trab = Costo / (Salario × Hrs)',
       wage: 'Salario = Costo / (Trab × Hrs)',
       hours: 'Hrs = Costo / (Trab × Salario)'
+    },
+    formulaVisual: {
+      cost: [
+        { type: 'var', id: 'workers' },
+        { type: 'op', symbol: '×' },
+        { type: 'var', id: 'wage' },
+        { type: 'op', symbol: '×' },
+        { type: 'var', id: 'hours' },
+      ],
+      workers: [
+        { type: 'var', id: 'cost' },
+        { type: 'op', symbol: '÷' },
+        { type: 'group', label: '', steps: [
+          { type: 'var', id: 'wage' },
+          { type: 'op', symbol: '×' },
+          { type: 'var', id: 'hours' },
+        ]},
+      ],
+      wage: [
+        { type: 'var', id: 'cost' },
+        { type: 'op', symbol: '÷' },
+        { type: 'group', label: '', steps: [
+          { type: 'var', id: 'workers' },
+          { type: 'op', symbol: '×' },
+          { type: 'var', id: 'hours' },
+        ]},
+      ],
+      hours: [
+        { type: 'var', id: 'cost' },
+        { type: 'op', symbol: '÷' },
+        { type: 'group', label: '', steps: [
+          { type: 'var', id: 'workers' },
+          { type: 'op', symbol: '×' },
+          { type: 'var', id: 'wage' },
+        ]},
+      ],
     },
     variables: [
       { 
@@ -356,6 +503,23 @@ export const MODULES: Record<string, ModuleDefinition> = {
       units: 'Unidades = Costo / Precio',
       price: 'Precio = Costo / Unidades'
     },
+    formulaVisual: {
+      cost: [
+        { type: 'var', id: 'units' },
+        { type: 'op', symbol: '×' },
+        { type: 'var', id: 'price' },
+      ],
+      units: [
+        { type: 'var', id: 'cost' },
+        { type: 'op', symbol: '÷' },
+        { type: 'var', id: 'price' },
+      ],
+      price: [
+        { type: 'var', id: 'cost' },
+        { type: 'op', symbol: '÷' },
+        { type: 'var', id: 'units' },
+      ],
+    },
     variables: [
       { 
         id: 'cost', 
@@ -400,6 +564,61 @@ export const MODULES: Record<string, ModuleDefinition> = {
       lab_cost: 'Lab = Total - (Mat + Fijos + Otros)',
       fix_cost: 'Fijos = Total - (Mat + Lab + Otros)',
       disc_cost: 'Otros = Total - (Mat + Lab + Fijos)'
+    },
+    formulaVisual: {
+      total: [
+        { type: 'var', id: 'mat_cost' },
+        { type: 'op', symbol: '+' },
+        { type: 'var', id: 'lab_cost' },
+        { type: 'op', symbol: '+' },
+        { type: 'var', id: 'fix_cost' },
+        { type: 'op', symbol: '+' },
+        { type: 'var', id: 'disc_cost' },
+      ],
+      mat_cost: [
+        { type: 'var', id: 'total' },
+        { type: 'op', symbol: '−' },
+        { type: 'group', label: '', steps: [
+          { type: 'var', id: 'lab_cost' },
+          { type: 'op', symbol: '+' },
+          { type: 'var', id: 'fix_cost' },
+          { type: 'op', symbol: '+' },
+          { type: 'var', id: 'disc_cost' },
+        ]},
+      ],
+      lab_cost: [
+        { type: 'var', id: 'total' },
+        { type: 'op', symbol: '−' },
+        { type: 'group', label: '', steps: [
+          { type: 'var', id: 'mat_cost' },
+          { type: 'op', symbol: '+' },
+          { type: 'var', id: 'fix_cost' },
+          { type: 'op', symbol: '+' },
+          { type: 'var', id: 'disc_cost' },
+        ]},
+      ],
+      fix_cost: [
+        { type: 'var', id: 'total' },
+        { type: 'op', symbol: '−' },
+        { type: 'group', label: '', steps: [
+          { type: 'var', id: 'mat_cost' },
+          { type: 'op', symbol: '+' },
+          { type: 'var', id: 'lab_cost' },
+          { type: 'op', symbol: '+' },
+          { type: 'var', id: 'disc_cost' },
+        ]},
+      ],
+      disc_cost: [
+        { type: 'var', id: 'total' },
+        { type: 'op', symbol: '−' },
+        { type: 'group', label: '', steps: [
+          { type: 'var', id: 'mat_cost' },
+          { type: 'op', symbol: '+' },
+          { type: 'var', id: 'lab_cost' },
+          { type: 'op', symbol: '+' },
+          { type: 'var', id: 'fix_cost' },
+        ]},
+      ],
     },
     variables: [
       { 
@@ -468,6 +687,23 @@ export const MODULES: Record<string, ModuleDefinition> = {
       total_cost: 'Total = Costo Unit × Unidades',
       units: 'Unidades = Total / Costo Unit'
     },
+    formulaVisual: {
+      u_cost: [
+        { type: 'var', id: 'total_cost' },
+        { type: 'op', symbol: '÷' },
+        { type: 'var', id: 'units' },
+      ],
+      total_cost: [
+        { type: 'var', id: 'u_cost' },
+        { type: 'op', symbol: '×' },
+        { type: 'var', id: 'units' },
+      ],
+      units: [
+        { type: 'var', id: 'total_cost' },
+        { type: 'op', symbol: '÷' },
+        { type: 'var', id: 'u_cost' },
+      ],
+    },
     variables: [
       { 
         id: 'u_cost', 
@@ -506,6 +742,25 @@ export const MODULES: Record<string, ModuleDefinition> = {
     icon: <Package className="w-5 h-5" />,
     description: 'Valoración PEPS / Promedio.',
     baseFormula: 'Valor = (Rem * P_Viejo) + (Nuevo * P_Nuevo)',
+    formulaVisual: {
+      total_val: [
+        { type: 'group', label: 'Remanente', steps: [
+          { type: 'group', label: '', steps: [
+            { type: 'var', id: 'init_qty' },
+            { type: 'op', symbol: '−' },
+            { type: 'var', id: 'used_qty' },
+          ]},
+          { type: 'op', symbol: '×' },
+          { type: 'var', id: 'old_price' },
+        ]},
+        { type: 'op', symbol: '+' },
+        { type: 'group', label: 'Compras', steps: [
+          { type: 'var', id: 'new_qty' },
+          { type: 'op', symbol: '×' },
+          { type: 'var', id: 'new_price' },
+        ]},
+      ],
+    },
     variables: [
       { 
         id: 'total_val', 
