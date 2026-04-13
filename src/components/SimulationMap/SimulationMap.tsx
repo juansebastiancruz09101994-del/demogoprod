@@ -45,6 +45,7 @@ const SimulationMapInner = () => {
     } catch { return []; }
   });
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string; descendants: string[] } | null>(null);
   const [showOverlay, setShowOverlay] = useState(() => {
     return !localStorage.getItem('goprod_welcomed');
   });
@@ -473,52 +474,22 @@ const SimulationMapInner = () => {
 
   const handleDelete = (id: string) => {
     const descendants = getDescendants(id, edges);
-    const totalToDelete = descendants.length + 1;
     const nodeDef = MODULES[nodes.find(n => n.id === id)?.type || ''];
     const nodeName = nodeDef?.title || 'este nodo';
+    setDeleteConfirm({ id, name: nodeName, descendants });
+  };
 
-    if (totalToDelete > 1) {
-      toast(`¿Eliminar "${nodeName}" y ${descendants.length} nodo(s) conectado(s)?`, {
-        description: 'Esta acción no se puede deshacer.',
-        action: {
-          label: 'Eliminar',
-          onClick: () => {
-            const idsToRemove = new Set([id, ...descendants]);
-            setNodes(prev => {
-              const remaining = prev.filter(n => !idsToRemove.has(n.id));
-              if (remaining.length === 0) setShowModulePicker(true);
-              return remaining;
-            });
-            setEdges(prev => prev.filter(e => !idsToRemove.has(e.from) && !idsToRemove.has(e.to)));
-            toast.success(`${totalToDelete} nodo(s) eliminados`);
-          },
-        },
-        cancel: {
-          label: 'Cancelar',
-          onClick: () => {},
-        },
-      });
-    } else {
-      toast(`¿Eliminar "${nodeName}"?`, {
-        description: 'Esta acción no se puede deshacer.',
-        action: {
-          label: 'Eliminar',
-          onClick: () => {
-            setNodes(prev => {
-              const remaining = prev.filter(n => n.id !== id);
-              if (remaining.length === 0) setShowModulePicker(true);
-              return remaining;
-            });
-            setEdges(prev => prev.filter(e => e.from !== id && e.to !== id));
-            toast.success('Nodo eliminado');
-          },
-        },
-        cancel: {
-          label: 'Cancelar',
-          onClick: () => {},
-        },
-      });
-    }
+  const confirmDelete = () => {
+    if (!deleteConfirm) return;
+    const { id, descendants } = deleteConfirm;
+    const idsToRemove = new Set([id, ...descendants]);
+    setNodes(prev => {
+      const remaining = prev.filter(n => !idsToRemove.has(n.id));
+      if (remaining.length === 0) setShowModulePicker(true);
+      return remaining;
+    });
+    setEdges(prev => prev.filter(e => !idsToRemove.has(e.from) && !idsToRemove.has(e.to)));
+    setDeleteConfirm(null);
   };
 
   const handleSelectStartModule = (moduleId: string) => {
