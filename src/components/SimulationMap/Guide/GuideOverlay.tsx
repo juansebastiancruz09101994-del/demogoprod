@@ -100,8 +100,8 @@ export const GuideOverlay = () => {
   if (!isGuideActive || !guideMessage) return null;
 
   const positionStyle = position
-    ? { left: position.x, top: position.y, transform: 'none' }
-    : { left: '50%', bottom: 80, transform: 'translateX(-50%)' };
+    ? { left: position.x, top: position.y, right: 'auto' as const, transform: 'none' }
+    : { right: 16, top: 16 };
 
   return (
     <div

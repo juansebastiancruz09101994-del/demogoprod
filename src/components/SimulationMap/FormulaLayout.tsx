@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Lock, HelpCircle } from 'lucide-react';
 import { Variable, FormulaStep, ModuleDefinition } from './types';
 import { GuidePulse } from './DemoMode/GuidePulse';
@@ -195,6 +196,17 @@ const StepRenderer = ({
   return null;
 };
 
+// Format number with thousand separators
+const formatWithCommas = (num: number | string): string => {
+  const str = String(num);
+  const parts = str.split('.');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return parts.join('.');
+};
+
+// Strip commas from formatted string
+const stripCommas = (str: string): string => str.replace(/,/g, '');
+
 // Single variable input row
 const VariableInput = ({
   variable,
@@ -219,6 +231,61 @@ const VariableInput = ({
   isResult?: boolean;
   compact?: boolean;
 }) => {
+  const [displayValue, setDisplayValue] = useState('');
+  const [commaError, setCommaError] = useState(false);
+
+  // Sync display value when external value changes (e.g. calculated result)
+  useEffect(() => {
+    if (value !== undefined && value !== null) {
+      setDisplayValue(formatWithCommas(value));
+    } else {
+      setDisplayValue('');
+    }
+  }, [value]);
+
+  const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+
+    // Detect comma usage → show error
+    if (raw.includes(',')) {
+      // Check if the comma is being typed by the user (not our formatting)
+      const cursorPos = e.target.selectionStart || 0;
+      const beforeCursor = raw.slice(0, cursorPos);
+      const stripped = stripCommas(raw);
+      // If after stripping commas the value has a comma, user typed one
+      if (stripped.includes(',')) {
+        setCommaError(true);
+        setTimeout(() => setCommaError(false), 2000);
+        return;
+      }
+    }
+
+    setCommaError(false);
+
+    // Strip existing commas, allow only digits and one dot
+    const cleaned = stripCommas(raw);
+    if (cleaned !== '' && !/^\d*\.?\d*$/.test(cleaned)) return;
+
+    // Format display
+    if (cleaned === '' || cleaned === '.') {
+      setDisplayValue(cleaned);
+      // Create synthetic event for parent
+      const syntheticEvent = { ...e, target: { ...e.target, value: '0' } } as React.ChangeEvent<HTMLInputElement>;
+      onChange(syntheticEvent, variable.id);
+      return;
+    }
+
+    // Format the integer part with commas
+    const parts = cleaned.split('.');
+    const intFormatted = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    const formatted = parts.length > 1 ? `${intFormatted}.${parts[1]}` : intFormatted;
+    setDisplayValue(formatted);
+
+    // Pass numeric value to parent
+    const syntheticEvent = { ...e, target: { ...e.target, value: cleaned } } as React.ChangeEvent<HTMLInputElement>;
+    onChange(syntheticEvent, variable.id);
+  };
+
   const hasDemoHighlight = demoHighlight
     && demoHighlight.step.targetType === 'fill-input'
     && demoHighlight.step.targetVariable === variable.id;
@@ -285,25 +352,34 @@ const VariableInput = ({
           </div>
           <span className="text-slate-400 font-mono text-[10px]">{variable.unit}</span>
         </div>
-        <input
-          type="number"
-          step="any"
-          value={value !== undefined ? value : ''}
-          onChange={(e) => onChange(e, variable.id)}
-          readOnly={isTarget || isResult}
-          onMouseDown={(e) => e.stopPropagation()}
-          className={`w-full px-2 py-1 rounded border text-right font-mono
-            ${isTarget || isResult
-              ? 'bg-emerald-50 border-emerald-300 text-emerald-700 font-bold'
-              : hasDemoHighlight
-                ? 'bg-yellow-50 border-yellow-400 ring-2 ring-yellow-300 outline-none'
-                : hasGuideHighlight
-                  ? 'bg-blue-50 border-blue-400 ring-2 ring-blue-300 outline-none'
-                  : 'bg-slate-50 border-slate-200 focus:border-blue-400 outline-none'
-            }
-          `}
-          placeholder="0"
-        />
+        <div className="relative">
+          <input
+            type="text"
+            inputMode="decimal"
+            value={isTarget || isResult ? formatWithCommas(value ?? 0) : displayValue}
+            onChange={handleTextChange}
+            readOnly={isTarget || isResult}
+            onMouseDown={(e) => e.stopPropagation()}
+            className={`w-full px-2 py-1 rounded border text-right font-mono
+              ${commaError
+                ? 'bg-red-50 border-red-400 ring-2 ring-red-300 outline-none'
+                : isTarget || isResult
+                  ? 'bg-emerald-50 border-emerald-300 text-emerald-700 font-bold'
+                  : hasDemoHighlight
+                    ? 'bg-yellow-50 border-yellow-400 ring-2 ring-yellow-300 outline-none'
+                    : hasGuideHighlight
+                      ? 'bg-blue-50 border-blue-400 ring-2 ring-blue-300 outline-none'
+                      : 'bg-slate-50 border-slate-200 focus:border-blue-400 outline-none'
+              }
+            `}
+            placeholder="0"
+          />
+          {commaError && (
+            <p className="absolute -bottom-4 right-0 text-[10px] text-red-500 font-medium whitespace-nowrap">
+              Usa punto (.) para decimales
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );
