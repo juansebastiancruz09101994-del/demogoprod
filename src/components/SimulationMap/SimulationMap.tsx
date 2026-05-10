@@ -132,8 +132,10 @@ const SimulationMapInner = () => {
   useEffect(() => {
     if (demo.isDemoActive && reportData && !demo.reportLoaded) {
       demo.setReportLoaded(true);
-      // Auto-select scenario 1
-      demo.selectScenario(1);
+      // Auto-select scenario 1 solo si el reporte se cargó *después* de entrar al demo
+      if (!reportWasLoadedAtDemoStartRef.current) {
+        demo.selectScenario(1);
+      }
     }
   }, [reportData, demo.isDemoActive, demo.reportLoaded]);
 
