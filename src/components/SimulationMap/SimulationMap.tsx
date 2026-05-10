@@ -10,6 +10,7 @@ import { MODULES } from "./modules";
 import { NodeData, Edge, ReportData } from "./types";
 import { DemoProvider, useDemo, ScenarioCards, DemoOverlay, DEMO_SCENARIOS } from "./DemoMode";
 import { GuideProvider, useGuide, GuideOverlay } from "./Guide";
+import { ModeToggle } from "./ModeToggle";
 
 const STARTER_MODULES = [
   { id: 'production_target', title: 'Plan de Producción', icon: <PlayCircle className="w-5 h-5" />, color: 'bg-emerald-500', category: 'Start' },
@@ -649,18 +650,6 @@ const SimulationMapInner = () => {
         }}
       />
 
-      {/* Mode Badge — indica claramente el modo activo */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
-        <div
-          className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider shadow-md border ${
-            demo.isDemoActive
-              ? 'bg-blue-600 text-white border-blue-500'
-              : 'bg-white text-slate-600 border-slate-200'
-          }`}
-        >
-          {demo.isDemoActive ? 'Modo Demo' : 'Modo Estudio'}
-        </div>
-      </div>
 
       {/* Report Panel */}
       <ReportPanel
@@ -759,31 +748,22 @@ const SimulationMapInner = () => {
       {/* Controls - Bottom Right */}
       <FeedbackModal open={feedbackOpen} onOpenChange={setFeedbackOpen} />
 
-      <div className="absolute bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-auto">
-        {/* Demo Mode Button */}
-        <button
-          onClick={handleToggleDemoMode}
-          className={`p-2 rounded-lg shadow border transition-colors ${
-            demo.isDemoActive
-              ? 'bg-blue-600 text-white border-blue-500'
-              : 'bg-white text-slate-400 hover:text-blue-600 hover:border-blue-300 border-slate-200'
-          }`}
-          title={demo.isDemoActive ? 'Cambiar a modo estudio' : 'Cambiar a modo demo'}
-        >
-          <GraduationCap className="w-4 h-4" />
-        </button>
-        {/* Guide Toggle */}
-        <button
-          onClick={guide.toggleGuide}
-          className={`p-2 rounded-lg shadow border transition-colors ${
-            guide.isGuideActive
-              ? 'bg-blue-600 text-white border-blue-500'
-              : 'bg-white text-slate-400 hover:text-blue-600 hover:border-blue-300 border-slate-200'
-          }`}
-          title={guide.isGuideActive ? 'Desactivar apoyo estratégico' : 'Activar apoyo estratégico'}
-        >
-          <Lightbulb className="w-4 h-4" />
-        </button>
+      <div className="absolute bottom-5 right-5 z-50 flex flex-col items-center gap-3 pointer-events-auto">
+        {/* Selector de modo: Demo ↔ Estudio */}
+        <ModeToggle
+          mode={demo.isDemoActive ? 'demo' : 'study'}
+          onChange={(next) => {
+            if (next === 'demo' && !demo.isDemoActive) {
+              guide.setGuideActive(false);
+              handleToggleDemoMode();
+            } else if (next === 'study' && demo.isDemoActive) {
+              handleToggleDemoMode();
+              guide.setGuideActive(true);
+            } else if (next === 'study') {
+              guide.setGuideActive(true);
+            }
+          }}
+        />
         <button
           onClick={() => setFeedbackOpen(true)}
           className="bg-white p-2 rounded-lg shadow border border-slate-200 text-slate-400 hover:text-blue-600 hover:border-blue-300 transition-colors"

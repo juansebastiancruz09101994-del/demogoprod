@@ -1,61 +1,88 @@
-## Convertir Demo ↔ Estudio en un toggle real con dos espacios separados
+## Toggle vertical tipo cápsula: Demo ↔ Estudio
 
-### Problema raíz
+Reemplazar los dos botones independientes (birrete + bombillo) por un único selector exclusivo con indicador deslizante.
 
-- Al entrar al demo no se cambia el canvas, así que visualmente "no pasa nada".
-- Al salir del demo, los nodos del demo (cargados por `selectScenario(1)` y el efecto en líneas 75–101) se quedan en pantalla, porque `exitDemo()` solo apaga flags pero no restaura el canvas previo del estudiante.
-- No hay separación entre el "espacio de trabajo de estudio" y el "espacio de trabajo de demo".
+### Mapeo semántico
 
-### Solución: dos workspaces independientes
+- **Círculo superior — birrete** → Modo Demo (`demo.isDemoActive = true`).
+- **Círculo inferior — bombillo** → Modo Estudio con apoyo estratégico (`demo.isDemoActive = false` + `guide.isGuideActive = true`).
 
-Mantener **dos snapshots** dentro de `SimulationMap.tsx` (en `useRef` para no provocar renders extra):
+Solo uno puede estar activo. Clic en birrete: entra al demo (toggle de workspace ya implementado) y apaga el guide. Clic en bombillo: sale del demo y enciende el guide. El badge "Modo Estudio / Modo Demo" en la parte superior queda redundante y se quita.
 
-- `studyWorkspaceRef` → `{ nodes, edges, reportData, pan, zoom, showModulePicker }`
-- `demoWorkspaceRef` → mismo shape
+### Componente nuevo
 
-Cuando el usuario alterne, se guarda el workspace actual y se carga el otro. Si el otro nunca ha existido, se inicializa en blanco (módulo picker para estudio; canvas vacío + selección de escenarios para demo).
+`src/components/SimulationMap/ModeToggle.tsx` — cápsula vertical autocontenida.
 
-### Cambios concretos
+Props:
+```ts
+{
+  mode: 'demo' | 'study';
+  onChange: (next: 'demo' | 'study') => void;
+}
+```
 
-1. **`src/components/SimulationMap/SimulationMap.tsx`**
+### Anatomía visual
 
-   - Añadir `studyWorkspaceRef` y `demoWorkspaceRef` (`useRef<Workspace | null>`).
-   - Reescribir `handleToggleDemoMode`:
-     - Si **no** está en demo:
-       1. Guardar workspace actual en `studyWorkspaceRef`.
-       2. Si hay `demoWorkspaceRef.current`, restaurarlo (nodes, edges, report, pan, zoom).
-       3. Si no, dejar canvas limpio (`setNodes([])`, `setEdges([])`, `setShowModulePicker(false)`) para que el demo arranque desde cero como espera su flujo.
-       4. Llamar `demo.startDemo()`.
-     - Si **sí** está en demo:
-       1. Guardar workspace actual en `demoWorkspaceRef`.
-       2. Llamar `demo.exitDemo()`.
-       3. Restaurar `studyWorkspaceRef` (o, si está vacío, mostrar `ModulePicker`).
+```text
+   ╭─────────╮
+   │   ◉ 🎓  │  ← círculo activo (elevado, fondo azul oscuro)
+   │  ─────  │  ← separador horizontal sutil
+   │   ○ 💡  │  ← círculo inactivo (blanco, ícono gris azulado)
+   ╰─────────╯
+```
 
-   - Ajustar el `useEffect` de líneas 75–101 (carga de canvas por escenario) para que **solo actúe cuando `demo.isDemoActive` sea `true`**, así no dispara nada al salir del demo.
+- **Cápsula contenedora**: `width: 56px`, `height: 120px`, `border-radius: 9999px`, fondo `#2563FF` (azul eléctrico), `box-shadow` externa suave (`0 8px 24px -8px rgba(37, 99, 255, 0.45)`).
+- **Indicador deslizante** (`absolute`, animado con `transform: translateY`):
+  - Círculo de `48px`, fondo `#FFFFFF`, sombra interna ligera para neumorfismo.
+  - Posición top cuando `mode === 'demo'`, bottom cuando `mode === 'study'`.
+  - Transición `cubic-bezier(0.4, 0, 0.2, 1)` ~ 280ms (iOS feel).
+- **Iconos** (`GraduationCap`, `Lightbulb` de lucide-react, `size={20}`):
+  - Activo: ícono dentro del círculo blanco, color `#1D4ED8`.
+  - Inactivo: ícono sobre la cápsula azul, color `#FFFFFF` con opacidad `0.7`.
+  - Wait — corrección según el spec del usuario: el activo tiene fondo azul oscuro con ícono blanco; el inactivo es círculo blanco con ícono gris azulado. Reescribir:
+    - **Activo**: círculo elevado con fondo `linear-gradient(180deg, #2563FF, #1D4ED8)`, ícono blanco.
+    - **Inactivo**: círculo blanco plano, ícono `#94A3B8`.
+  - Esto se logra renderizando ambos slots con su estilo según `mode` (no un único pill que se mueve, sino dos círculos cuyo estado cambia + un sutil indicador deslizante detrás).
 
-   - Ajustar el `useEffect` de líneas 119–125 (auto-selección de escenario al cargar reporte) para que **no auto-seleccione escenario** si el usuario apenas entró al demo con un reporte preexistente del modo estudio. Solo auto-seleccionar si `reportData` se cargó *después* de entrar al demo. Se logra guardando una bandera `reportWasLoadedAtDemoStartRef` en el momento de entrar al demo.
+### Estructura DOM final
 
-   - Persistir nodes/edges/report en `localStorage` solo cuando **no** estemos en modo demo, para que el estudio no quede contaminado con datos del demo (los efectos actuales en líneas 102–116 escriben siempre).
+```tsx
+<div className="capsule">                    // cápsula azul vertical
+  <div className="slider" data-pos={mode}/>  // pastilla blanca animada que indica posición
+  <button data-mode="demo">  <GraduationCap /> </button>
+  <div className="divider" />                // línea horizontal sutil
+  <button data-mode="study"> <Lightbulb />   </button>
+</div>
+```
 
-2. **Indicador visual claro de modo activo**
+El "slider" es un pseudo-fondo blanco `48x48` con `top` animado entre `4px` y `68px`. Los íconos se renderizan encima: cuando coinciden con el slider, se ven sobre fondo blanco con color azul oscuro; cuando no, se ven directamente sobre el azul de la cápsula con color blanco translúcido.
 
-   - Añadir un pequeño badge fijo arriba (top-center o top-left del canvas) que diga:
-     - "Modo Estudio" (color slate/blue tenue) cuando `!demo.isDemoActive`.
-     - "Modo Demo" (color del acento del demo) cuando `demo.isDemoActive`.
-   - Así el toggle se ve y se siente real aunque ambos canvases tengan contenido.
+Espera — el spec del usuario dice activo = azul oscuro / ícono blanco, inactivo = blanco / gris. Invierto el slider: el slider es **azul oscuro** (`#1D4ED8`) y la cápsula es **azul medio** (`#2563FF`). El círculo del slot opuesto siempre se ve como un disco blanco fijo. Resultado:
 
-3. **Botón del bombillo (apoyo estratégico)**
+- Slot activo: disco azul oscuro (slider) con ícono blanco encima.
+- Slot inactivo: disco blanco fijo con ícono `#94A3B8` encima.
+- Cápsula azul medio de fondo entre ambos.
 
-   - Sin cambios funcionales. Solo asegurar que esté oculto/deshabilitado durante el demo (ya lo está implícitamente porque el `GuideOverlay` no se renderiza con demo activo).
+Esto da el efecto deseado y mantiene la animación de deslizamiento.
+
+### Integración en `SimulationMap.tsx`
+
+- Eliminar los dos botones actuales (birrete y bombillo) en el bloque de controles inferior derecho (~líneas 745–770).
+- Insertar `<ModeToggle mode={demo.isDemoActive ? 'demo' : 'study'} onChange={handleModeChange} />` en su lugar.
+- `handleModeChange(next)`:
+  - Si `next === 'demo'` y no estamos en demo → llamar `handleToggleDemoMode()` y `guide.setGuideActive(false)`.
+  - Si `next === 'study'` y estamos en demo → llamar `handleToggleDemoMode()` y `guide.setGuideActive(true)`.
+  - Si `next === 'study'` y ya estamos fuera del demo → `guide.setGuideActive(true)` (idempotente).
+- Quitar el badge superior "Modo Estudio / Modo Demo" porque el toggle ya comunica el modo activo.
+
+### Accesibilidad
+
+- Cada botón con `aria-label` ("Modo Demo" / "Modo Estudio") y `aria-pressed`.
+- `title` para tooltip en hover.
+- Foco visible (ring azul claro).
 
 ### Lo que NO se toca
 
-- Lógica de cálculo de módulos, fórmulas, conexiones.
-- Flujo interno del demo (escenarios, pasos, auto-pan, feedback final).
-- `DemoContext` (la API `startDemo` / `exitDemo` se conserva tal cual).
-
-### Resultado esperado
-
-- Clic en birrete con datos de estudio cargados → se guarda tu canvas de estudio, el canvas se limpia y entras al flujo demo. Badge cambia a "Modo Demo".
-- Clic en birrete estando en demo → se guarda el canvas del demo, vuelve tu canvas de estudio intacto. Badge cambia a "Modo Estudio".
-- Puedes alternar las veces que quieras sin perder el trabajo de ninguno de los dos lados.
+- Lógica del workspace toggle Demo/Estudio (ya implementada).
+- `DemoContext`, `GuideContext`.
+- Botones de feedback, exportar, reset, zoom, fit (siguen abajo, debajo del toggle).
