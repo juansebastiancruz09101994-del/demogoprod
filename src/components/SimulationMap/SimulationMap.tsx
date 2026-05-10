@@ -545,13 +545,59 @@ const SimulationMapInner = () => {
   };
 
   const handleToggleDemoMode = () => {
+    const snapshot: Workspace = {
+      nodes,
+      edges,
+      reportData,
+      pan,
+      zoom,
+      showModulePicker,
+    };
+
     if (demo.isDemoActive) {
-      // Salir a Modo Estudio sin borrar nada
+      // Guardar workspace actual del demo y restaurar el de estudio
+      demoWorkspaceRef.current = snapshot;
       demo.exitDemo();
+
+      const study = studyWorkspaceRef.current;
+      if (study) {
+        setNodes(study.nodes);
+        setEdges(study.edges);
+        setReportData(study.reportData);
+        setPan(study.pan);
+        setZoom(study.zoom);
+        setShowModulePicker(study.showModulePicker);
+      } else {
+        setNodes([]);
+        setEdges([]);
+        setReportData(null);
+        setShowModulePicker(true);
+        setPan({ x: window.innerWidth / 2 - 160, y: 100 });
+        setZoom(1);
+      }
       return;
     }
-    // Entrar a Modo Demo sin destruir el trabajo previo
-    setShowModulePicker(false);
+
+    // Entrar a Modo Demo: guardar estudio y cargar workspace de demo (o limpiar)
+    studyWorkspaceRef.current = snapshot;
+    reportWasLoadedAtDemoStartRef.current = !!reportData;
+
+    const dws = demoWorkspaceRef.current;
+    if (dws) {
+      setNodes(dws.nodes);
+      setEdges(dws.edges);
+      setReportData(dws.reportData);
+      setPan(dws.pan);
+      setZoom(dws.zoom);
+      setShowModulePicker(false);
+    } else {
+      setNodes([]);
+      setEdges([]);
+      setReportData(null);
+      setShowModulePicker(false);
+      setPan({ x: window.innerWidth / 2 - 160, y: 100 });
+      setZoom(1);
+    }
     demo.startDemo();
   };
 
