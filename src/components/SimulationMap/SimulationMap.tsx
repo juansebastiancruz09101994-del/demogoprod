@@ -84,7 +84,8 @@ const SimulationMapInner = () => {
   const studyWorkspaceRef = useRef<Workspace | null>(null);
   const demoWorkspaceRef = useRef<Workspace | null>(null);
   const reportWasLoadedAtDemoStartRef = useRef(false);
-
+  const [badgeDismissed, setBadgeDismissed] = useState(false);
+  useEffect(() => { setBadgeDismissed(false); }, [demo.isDemoActive]);
   // Demo: swap canvas when scenario changes
   useEffect(() => {
     const prev = prevScenarioRef.current;
@@ -650,6 +651,30 @@ const SimulationMapInner = () => {
         }}
       />
 
+      {/* Mode Badge */}
+      {!badgeDismissed && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 pointer-events-auto">
+          <div
+            className="group flex items-center gap-2 pl-3 pr-1 py-1 rounded-full bg-white/80 backdrop-blur-md opacity-50 hover:opacity-100 transition-opacity duration-200"
+            style={{ boxShadow: '0 4px 14px -4px rgba(15,23,42,0.18)' }}
+          >
+            <span
+              className="w-2 h-2 rounded-full"
+              style={{ background: demo.isDemoActive ? '#2563FF' : '#94A3B8' }}
+            />
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-600">
+              {demo.isDemoActive ? 'Modo Demo' : 'Modo Estudio'}
+            </span>
+            <button
+              onClick={() => setBadgeDismissed(true)}
+              className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors"
+              aria-label="Cerrar indicador de modo"
+            >
+              <X size={12} strokeWidth={2.4} className="text-slate-500" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Report Panel */}
       <ReportPanel
@@ -766,47 +791,56 @@ const SimulationMapInner = () => {
         />
         <button
           onClick={() => setFeedbackOpen(true)}
-          className="bg-white p-2 rounded-lg shadow border border-slate-200 text-slate-400 hover:text-blue-600 hover:border-blue-300 transition-colors"
+          className="group w-10 h-10 flex items-center justify-center bg-white rounded-[14px] opacity-45 hover:opacity-100 transition-opacity duration-200"
+          style={{ boxShadow: '0 2px 6px -2px rgba(15,23,42,0.18)' }}
           title="Enviar feedback"
         >
-          <MessageSquare className="w-4 h-4" />
+          <MessageSquare size={18} strokeWidth={2.2} className="text-slate-500 group-hover:text-[#2563FF] transition-colors duration-200" />
         </button>
         <button
           onClick={() => exportStrategyPDF(nodes, reportData)}
-          className="bg-white p-2 rounded-lg shadow border border-slate-200 text-slate-400 hover:text-blue-600 hover:border-blue-300 transition-colors"
+          className="group w-10 h-10 flex items-center justify-center bg-white rounded-[14px] opacity-45 hover:opacity-100 transition-opacity duration-200"
+          style={{ boxShadow: '0 2px 6px -2px rgba(15,23,42,0.18)' }}
           title="Exportar resumen estratégico"
         >
-          <Download className="w-4 h-4" />
+          <Download size={18} strokeWidth={2.2} className="text-slate-500 group-hover:text-[#2563FF] transition-colors duration-200" />
         </button>
         <button
           onClick={handleResetAll}
-          className="bg-white p-2 rounded-lg shadow border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-300 transition-colors"
+          className="group w-10 h-10 flex items-center justify-center bg-white rounded-[14px] opacity-45 hover:opacity-100 transition-opacity duration-200"
+          style={{ boxShadow: '0 2px 6px -2px rgba(15,23,42,0.18)' }}
           title="Reiniciar simulador"
         >
-          <Trash2 className="w-4 h-4" />
+          <Trash2 size={18} strokeWidth={2.2} className="text-slate-500 group-hover:text-[#EF4444] transition-colors duration-200" />
         </button>
         <button
           onClick={fitView}
-          className="bg-white p-2 rounded-lg shadow border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-300 transition-colors"
+          className="group w-10 h-10 flex items-center justify-center bg-white rounded-[14px] opacity-45 hover:opacity-100 transition-opacity duration-200"
+          style={{ boxShadow: '0 2px 6px -2px rgba(15,23,42,0.18)' }}
           title="Ajuste Automático"
         >
-          <Maximize className="w-5 h-5" />
+          <Maximize size={18} strokeWidth={2.2} className="text-slate-500 group-hover:text-[#2563FF] transition-colors duration-200" />
         </button>
-        <div className="flex flex-col rounded-lg shadow border border-slate-200 bg-white overflow-hidden">
+        <div
+          className="flex flex-col rounded-[14px] bg-white overflow-hidden opacity-45 hover:opacity-100 transition-opacity duration-200"
+          style={{ boxShadow: '0 2px 6px -2px rgba(15,23,42,0.18)' }}
+        >
           <button
             onClick={() => setZoom((z) => Math.min(z + 0.2, 3))}
-            className="p-2 hover:bg-slate-50 text-slate-600 border-b border-slate-100"
+            className="group w-10 h-10 flex items-center justify-center"
+            title="Acercar"
           >
-            <ZoomIn className="w-5 h-5" />
+            <ZoomIn size={18} strokeWidth={2.2} className="text-slate-500 group-hover:text-[#2563FF] transition-colors duration-200" />
           </button>
           <button
             onClick={() => setZoom((z) => Math.max(z - 0.2, 0.2))}
-            className="p-2 hover:bg-slate-50 text-slate-600"
+            className="group w-10 h-10 flex items-center justify-center"
+            title="Alejar"
           >
-            <ZoomOut className="w-5 h-5" />
+            <ZoomOut size={18} strokeWidth={2.2} className="text-slate-500 group-hover:text-[#2563FF] transition-colors duration-200" />
           </button>
         </div>
-        <div className="bg-white/80 backdrop-blur px-2 py-1 rounded text-[10px] font-mono text-slate-400 text-center border border-slate-200">
+        <div className="text-[10px] font-mono text-slate-400 opacity-45 hover:opacity-100 transition-opacity duration-200 text-center">
           {Math.round(zoom * 100)}%
         </div>
       </div>
