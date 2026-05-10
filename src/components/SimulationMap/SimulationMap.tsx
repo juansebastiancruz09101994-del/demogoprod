@@ -651,6 +651,30 @@ const SimulationMapInner = () => {
         }}
       />
 
+      {/* Mode Badge */}
+      {!badgeDismissed && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 pointer-events-auto">
+          <div
+            className="group flex items-center gap-2 pl-3 pr-1 py-1 rounded-full bg-white/80 backdrop-blur-md opacity-50 hover:opacity-100 transition-opacity duration-200"
+            style={{ boxShadow: '0 4px 14px -4px rgba(15,23,42,0.18)' }}
+          >
+            <span
+              className="w-2 h-2 rounded-full"
+              style={{ background: demo.isDemoActive ? '#2563FF' : '#94A3B8' }}
+            />
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-600">
+              {demo.isDemoActive ? 'Modo Demo' : 'Modo Estudio'}
+            </span>
+            <button
+              onClick={() => setBadgeDismissed(true)}
+              className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors"
+              aria-label="Cerrar indicador de modo"
+            >
+              <X size={12} strokeWidth={2.4} className="text-slate-500" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Report Panel */}
       <ReportPanel
