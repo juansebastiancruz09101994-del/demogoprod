@@ -113,20 +113,23 @@ const SimulationMapInner = () => {
     setZoom(1);
   }, [demo.currentScenario]);
   useEffect(() => {
+    if (demo.isDemoActive) return;
     localStorage.setItem('goprod_nodes', JSON.stringify(nodes));
-  }, [nodes]);
+  }, [nodes, demo.isDemoActive]);
 
   useEffect(() => {
+    if (demo.isDemoActive) return;
     localStorage.setItem('goprod_edges', JSON.stringify(edges));
-  }, [edges]);
+  }, [edges, demo.isDemoActive]);
 
   useEffect(() => {
+    if (demo.isDemoActive) return;
     if (reportData) {
       localStorage.setItem('goprod_report', JSON.stringify(reportData));
     } else {
       localStorage.removeItem('goprod_report');
     }
-  }, [reportData]);
+  }, [reportData, demo.isDemoActive]);
 
   // Demo: detect report loaded
   useEffect(() => {
