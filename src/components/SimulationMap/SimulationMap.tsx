@@ -71,6 +71,19 @@ const SimulationMapInner = () => {
   const guide = useGuide();
   const prevScenarioRef = useRef(demo.currentScenario);
 
+  // Workspaces independientes para alternar entre Estudio y Demo sin perder datos
+  type Workspace = {
+    nodes: NodeData[];
+    edges: Edge[];
+    reportData: ReportData | null;
+    pan: { x: number; y: number };
+    zoom: number;
+    showModulePicker: boolean;
+  };
+  const studyWorkspaceRef = useRef<Workspace | null>(null);
+  const demoWorkspaceRef = useRef<Workspace | null>(null);
+  const reportWasLoadedAtDemoStartRef = useRef(false);
+
   // Demo: swap canvas when scenario changes
   useEffect(() => {
     const prev = prevScenarioRef.current;
