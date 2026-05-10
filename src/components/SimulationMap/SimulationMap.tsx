@@ -84,7 +84,8 @@ const SimulationMapInner = () => {
   const studyWorkspaceRef = useRef<Workspace | null>(null);
   const demoWorkspaceRef = useRef<Workspace | null>(null);
   const reportWasLoadedAtDemoStartRef = useRef(false);
-
+  const [badgeDismissed, setBadgeDismissed] = useState(false);
+  useEffect(() => { setBadgeDismissed(false); }, [demo.isDemoActive]);
   // Demo: swap canvas when scenario changes
   useEffect(() => {
     const prev = prevScenarioRef.current;
