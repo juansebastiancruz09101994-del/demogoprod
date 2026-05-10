@@ -649,6 +649,19 @@ const SimulationMapInner = () => {
         }}
       />
 
+      {/* Mode Badge — indica claramente el modo activo */}
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
+        <div
+          className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider shadow-md border ${
+            demo.isDemoActive
+              ? 'bg-blue-600 text-white border-blue-500'
+              : 'bg-white text-slate-600 border-slate-200'
+          }`}
+        >
+          {demo.isDemoActive ? 'Modo Demo' : 'Modo Estudio'}
+        </div>
+      </div>
+
       {/* Report Panel */}
       <ReportPanel
         reportData={reportData}
