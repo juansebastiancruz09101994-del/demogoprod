@@ -10,6 +10,7 @@ import { MODULES } from "./modules";
 import { NodeData, Edge, ReportData } from "./types";
 import { DemoProvider, useDemo, ScenarioCards, DemoOverlay, DEMO_SCENARIOS } from "./DemoMode";
 import { GuideProvider, useGuide, GuideOverlay } from "./Guide";
+import { ModeToggle } from "./ModeToggle";
 
 const STARTER_MODULES = [
   { id: 'production_target', title: 'Plan de Producción', icon: <PlayCircle className="w-5 h-5" />, color: 'bg-emerald-500', category: 'Start' },
