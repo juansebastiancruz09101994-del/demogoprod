@@ -526,16 +526,14 @@ const SimulationMapInner = () => {
     setZoom(1);
   };
 
-  const handleStartDemo = () => {
-    setNodes([...DEFAULT_NODES]);
-    setEdges([]);
-    setReportData(null);
+  const handleToggleDemoMode = () => {
+    if (demo.isDemoActive) {
+      // Salir a Modo Estudio sin borrar nada
+      demo.exitDemo();
+      return;
+    }
+    // Entrar a Modo Demo sin destruir el trabajo previo
     setShowModulePicker(false);
-    localStorage.removeItem('goprod_nodes');
-    localStorage.removeItem('goprod_edges');
-    localStorage.removeItem('goprod_report');
-    setPan({ x: window.innerWidth / 2 - 160, y: 100 });
-    setZoom(1);
     demo.startDemo();
   };
 
@@ -687,13 +685,13 @@ const SimulationMapInner = () => {
       <div className="absolute bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-auto">
         {/* Demo Mode Button */}
         <button
-          onClick={handleStartDemo}
+          onClick={handleToggleDemoMode}
           className={`p-2 rounded-lg shadow border transition-colors ${
             demo.isDemoActive
               ? 'bg-blue-600 text-white border-blue-500'
               : 'bg-white text-slate-400 hover:text-blue-600 hover:border-blue-300 border-slate-200'
           }`}
-          title="Modo Demo"
+          title={demo.isDemoActive ? 'Cambiar a modo estudio' : 'Cambiar a modo demo'}
         >
           <GraduationCap className="w-4 h-4" />
         </button>
@@ -705,7 +703,7 @@ const SimulationMapInner = () => {
               ? 'bg-blue-600 text-white border-blue-500'
               : 'bg-white text-slate-400 hover:text-blue-600 hover:border-blue-300 border-slate-200'
           }`}
-          title={guide.isGuideActive ? 'Desactivar asistente' : 'Activar asistente'}
+          title={guide.isGuideActive ? 'Desactivar apoyo estratégico' : 'Activar apoyo estratégico'}
         >
           <Lightbulb className="w-4 h-4" />
         </button>
