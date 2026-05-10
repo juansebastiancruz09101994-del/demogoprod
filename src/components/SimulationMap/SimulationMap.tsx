@@ -71,6 +71,19 @@ const SimulationMapInner = () => {
   const guide = useGuide();
   const prevScenarioRef = useRef(demo.currentScenario);
 
+  // Workspaces independientes para alternar entre Estudio y Demo sin perder datos
+  type Workspace = {
+    nodes: NodeData[];
+    edges: Edge[];
+    reportData: ReportData | null;
+    pan: { x: number; y: number };
+    zoom: number;
+    showModulePicker: boolean;
+  };
+  const studyWorkspaceRef = useRef<Workspace | null>(null);
+  const demoWorkspaceRef = useRef<Workspace | null>(null);
+  const reportWasLoadedAtDemoStartRef = useRef(false);
+
   // Demo: swap canvas when scenario changes
   useEffect(() => {
     const prev = prevScenarioRef.current;
@@ -100,27 +113,32 @@ const SimulationMapInner = () => {
     setZoom(1);
   }, [demo.currentScenario]);
   useEffect(() => {
+    if (demo.isDemoActive) return;
     localStorage.setItem('goprod_nodes', JSON.stringify(nodes));
-  }, [nodes]);
+  }, [nodes, demo.isDemoActive]);
 
   useEffect(() => {
+    if (demo.isDemoActive) return;
     localStorage.setItem('goprod_edges', JSON.stringify(edges));
-  }, [edges]);
+  }, [edges, demo.isDemoActive]);
 
   useEffect(() => {
+    if (demo.isDemoActive) return;
     if (reportData) {
       localStorage.setItem('goprod_report', JSON.stringify(reportData));
     } else {
       localStorage.removeItem('goprod_report');
     }
-  }, [reportData]);
+  }, [reportData, demo.isDemoActive]);
 
   // Demo: detect report loaded
   useEffect(() => {
     if (demo.isDemoActive && reportData && !demo.reportLoaded) {
       demo.setReportLoaded(true);
-      // Auto-select scenario 1
-      demo.selectScenario(1);
+      // Auto-select scenario 1 solo si el reporte se cargó *después* de entrar al demo
+      if (!reportWasLoadedAtDemoStartRef.current) {
+        demo.selectScenario(1);
+      }
     }
   }, [reportData, demo.isDemoActive, demo.reportLoaded]);
 
@@ -527,13 +545,59 @@ const SimulationMapInner = () => {
   };
 
   const handleToggleDemoMode = () => {
+    const snapshot: Workspace = {
+      nodes,
+      edges,
+      reportData,
+      pan,
+      zoom,
+      showModulePicker,
+    };
+
     if (demo.isDemoActive) {
-      // Salir a Modo Estudio sin borrar nada
+      // Guardar workspace actual del demo y restaurar el de estudio
+      demoWorkspaceRef.current = snapshot;
       demo.exitDemo();
+
+      const study = studyWorkspaceRef.current;
+      if (study) {
+        setNodes(study.nodes);
+        setEdges(study.edges);
+        setReportData(study.reportData);
+        setPan(study.pan);
+        setZoom(study.zoom);
+        setShowModulePicker(study.showModulePicker);
+      } else {
+        setNodes([]);
+        setEdges([]);
+        setReportData(null);
+        setShowModulePicker(true);
+        setPan({ x: window.innerWidth / 2 - 160, y: 100 });
+        setZoom(1);
+      }
       return;
     }
-    // Entrar a Modo Demo sin destruir el trabajo previo
-    setShowModulePicker(false);
+
+    // Entrar a Modo Demo: guardar estudio y cargar workspace de demo (o limpiar)
+    studyWorkspaceRef.current = snapshot;
+    reportWasLoadedAtDemoStartRef.current = !!reportData;
+
+    const dws = demoWorkspaceRef.current;
+    if (dws) {
+      setNodes(dws.nodes);
+      setEdges(dws.edges);
+      setReportData(dws.reportData);
+      setPan(dws.pan);
+      setZoom(dws.zoom);
+      setShowModulePicker(false);
+    } else {
+      setNodes([]);
+      setEdges([]);
+      setReportData(null);
+      setShowModulePicker(false);
+      setPan({ x: window.innerWidth / 2 - 160, y: 100 });
+      setZoom(1);
+    }
     demo.startDemo();
   };
 
@@ -584,6 +648,19 @@ const SimulationMapInner = () => {
           backgroundPosition: `${pan.x}px ${pan.y}px`,
         }}
       />
+
+      {/* Mode Badge — indica claramente el modo activo */}
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
+        <div
+          className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider shadow-md border ${
+            demo.isDemoActive
+              ? 'bg-blue-600 text-white border-blue-500'
+              : 'bg-white text-slate-600 border-slate-200'
+          }`}
+        >
+          {demo.isDemoActive ? 'Modo Demo' : 'Modo Estudio'}
+        </div>
+      </div>
 
       {/* Report Panel */}
       <ReportPanel
