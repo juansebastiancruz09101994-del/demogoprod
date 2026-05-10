@@ -8,7 +8,7 @@ interface ModeToggleProps {
 export const ModeToggle = ({ mode, onChange }: ModeToggleProps) => {
   return (
     <div
-      className="relative flex flex-col items-center justify-between p-1.5 opacity-50 hover:opacity-100 transition-opacity duration-200"
+      className="relative flex flex-col items-center justify-between p-1.5 opacity-30 hover:opacity-100 transition-opacity duration-200"
       style={{
         width: 56,
         height: 120,
