@@ -655,7 +655,7 @@ const SimulationMapInner = () => {
       {!badgeDismissed && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 pointer-events-auto">
           <div
-            className="group flex items-center gap-2 pl-3 pr-1 py-1 rounded-full bg-white/80 backdrop-blur-md opacity-50 hover:opacity-100 transition-opacity duration-200"
+            className="group flex items-center gap-2 pl-3 pr-1 py-1 rounded-full bg-white/80 backdrop-blur-md opacity-30 hover:opacity-100 transition-opacity duration-200"
             style={{ boxShadow: '0 4px 14px -4px rgba(15,23,42,0.18)' }}
           >
             <span
@@ -791,7 +791,7 @@ const SimulationMapInner = () => {
         />
         <button
           onClick={() => setFeedbackOpen(true)}
-          className="group w-10 h-10 flex items-center justify-center bg-white rounded-[14px] opacity-45 hover:opacity-100 transition-opacity duration-200"
+          className="group w-10 h-10 flex items-center justify-center bg-white rounded-[14px] opacity-30 hover:opacity-100 transition-opacity duration-200"
           style={{ boxShadow: '0 2px 6px -2px rgba(15,23,42,0.18)' }}
           title="Enviar feedback"
         >
@@ -799,7 +799,7 @@ const SimulationMapInner = () => {
         </button>
         <button
           onClick={() => exportStrategyPDF(nodes, reportData)}
-          className="group w-10 h-10 flex items-center justify-center bg-white rounded-[14px] opacity-45 hover:opacity-100 transition-opacity duration-200"
+          className="group w-10 h-10 flex items-center justify-center bg-white rounded-[14px] opacity-30 hover:opacity-100 transition-opacity duration-200"
           style={{ boxShadow: '0 2px 6px -2px rgba(15,23,42,0.18)' }}
           title="Exportar resumen estratégico"
         >
@@ -807,7 +807,7 @@ const SimulationMapInner = () => {
         </button>
         <button
           onClick={handleResetAll}
-          className="group w-10 h-10 flex items-center justify-center bg-white rounded-[14px] opacity-45 hover:opacity-100 transition-opacity duration-200"
+          className="group w-10 h-10 flex items-center justify-center bg-white rounded-[14px] opacity-30 hover:opacity-100 transition-opacity duration-200"
           style={{ boxShadow: '0 2px 6px -2px rgba(15,23,42,0.18)' }}
           title="Reiniciar simulador"
         >
@@ -815,14 +815,14 @@ const SimulationMapInner = () => {
         </button>
         <button
           onClick={fitView}
-          className="group w-10 h-10 flex items-center justify-center bg-white rounded-[14px] opacity-45 hover:opacity-100 transition-opacity duration-200"
+          className="group w-10 h-10 flex items-center justify-center bg-white rounded-[14px] opacity-30 hover:opacity-100 transition-opacity duration-200"
           style={{ boxShadow: '0 2px 6px -2px rgba(15,23,42,0.18)' }}
           title="Ajuste Automático"
         >
           <Maximize size={18} strokeWidth={2.2} className="text-slate-500 group-hover:text-[#2563FF] transition-colors duration-200" />
         </button>
         <div
-          className="flex flex-col rounded-[14px] bg-white overflow-hidden opacity-45 hover:opacity-100 transition-opacity duration-200"
+          className="flex flex-col rounded-[14px] bg-white overflow-hidden opacity-30 hover:opacity-100 transition-opacity duration-200"
           style={{ boxShadow: '0 2px 6px -2px rgba(15,23,42,0.18)' }}
         >
           <button
@@ -840,7 +840,7 @@ const SimulationMapInner = () => {
             <ZoomOut size={18} strokeWidth={2.2} className="text-slate-500 group-hover:text-[#2563FF] transition-colors duration-200" />
           </button>
         </div>
-        <div className="text-[10px] font-mono text-slate-400 opacity-45 hover:opacity-100 transition-opacity duration-200 text-center">
+        <div className="text-[10px] font-mono text-slate-400 opacity-30 hover:opacity-100 transition-opacity duration-200 text-center">
           {Math.round(zoom * 100)}%
         </div>
       </div>
